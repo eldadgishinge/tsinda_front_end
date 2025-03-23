@@ -1,9 +1,9 @@
-import Image from "next/image"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { Star, ChevronLeft, ChevronRight, Play } from 'lucide-react'
+import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Star, ChevronLeft, ChevronRight, Play } from "lucide-react";
 
 const testimonials = [
   {
@@ -14,7 +14,8 @@ const testimonials = [
   },
   {
     name: "Mia Roberts",
-    quote: "TheoryDrive has revolutionized our approach to teaching driving concepts!",
+    quote:
+      "TheoryDrive has revolutionized our approach to teaching driving concepts!",
     image: "/placeholder.svg",
     stars: 5,
   },
@@ -30,7 +31,7 @@ const testimonials = [
     image: "/placeholder.svg",
     stars: 5,
   },
-]
+];
 
 export default function HomePage() {
   return (
@@ -48,8 +49,8 @@ export default function HomePage() {
             />
           </div>
           <div className="flex items-center space-x-4">
-            <Link 
-              href="/login" 
+            <Link
+              href="/login"
               className="text-sm text-gray-600 hover:text-gray-900"
             >
               Log in to your account
@@ -102,7 +103,8 @@ export default function HomePage() {
               <CardContent className="p-8">
                 <div className="space-y-8">
                   <h3 className="text-xl font-semibold">
-                    3. What is the main purpose of ABS (Anti-lock Braking System)?
+                    3. What is the main purpose of ABS (Anti-lock Braking
+                    System)?
                   </h3>
                   <div className="grid md:grid-cols-2 gap-8">
                     <div className="aspect-square relative bg-gray-100 rounded-lg overflow-hidden">
@@ -148,7 +150,8 @@ export default function HomePage() {
               Flexible plans tailored to your needs
             </h2>
             <p className="text-gray-600 mb-12">
-              Transparent pricing that adapts as you grow. Try any plan free for 30 days.
+              Transparent pricing that adapts as you grow. Try any plan free for
+              30 days.
             </p>
 
             <Card className="max-w-sm mx-auto">
@@ -180,7 +183,8 @@ export default function HomePage() {
                   Don't just take our word for it!
                 </h2>
                 <p className="text-gray-600">
-                  Listen to our amazing users who are excelling in their theoretical driving classes.
+                  Listen to our amazing users who are excelling in their
+                  theoretical driving classes.
                 </p>
               </div>
               <div className="flex space-x-2">
@@ -239,7 +243,8 @@ export default function HomePage() {
                 <div>
                   <h3 className="font-semibold">Untitled UI</h3>
                   <p className="text-sm text-gray-600">
-                    Create exceptional driving experiences that bring joy to learners.
+                    Create exceptional driving experiences that bring joy to
+                    learners.
                   </p>
                 </div>
               </div>
@@ -270,13 +275,22 @@ export default function HomePage() {
               © 2077 SmartDrive. All rights reserved.
             </div>
             <div className="flex gap-6">
-              <Link href="#" className="text-sm text-gray-600 hover:text-gray-900">
+              <Link
+                href="#"
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
                 Terms of Service
               </Link>
-              <Link href="#" className="text-sm text-gray-600 hover:text-gray-900">
+              <Link
+                href="#"
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
                 Privacy Policy
               </Link>
-              <Link href="#" className="text-sm text-gray-600 hover:text-gray-900">
+              <Link
+                href="#"
+                className="text-sm text-gray-600 hover:text-gray-900"
+              >
                 Cookie Policy
               </Link>
             </div>
@@ -284,6 +298,5 @@ export default function HomePage() {
         </div>
       </footer>
     </div>
-  )
+  );
 }
-
