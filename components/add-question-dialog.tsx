@@ -49,7 +49,7 @@ export function AddQuestionDialog({
     resolver: zodResolver(createQuestionSchema),
     defaultValues: {
       text: "",
-      imageUrl: "",
+      imageUrl: undefined,
       answerOptions: [
         { text: "", isCorrect: true },
         { text: "", isCorrect: false },
