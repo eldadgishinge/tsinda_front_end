@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import { Bell } from "lucide-react"
-import Image from "next/image"
-import { Input } from "@/components/ui/input"
-import { UserNav } from "@/components/user-nav"
-import { usePathname } from "next/navigation"
-import Link from "next/link"
-import type React from "react"
+import { Bell } from "lucide-react";
+import Image from "next/image";
+import { Input } from "@/components/ui/input";
+import { UserNav } from "@/components/user-nav";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import type React from "react";
 
 interface NavItem {
-  href: string
-  icon: React.ReactNode
-  label: string
+  href: string;
+  icon: React.ReactNode;
+  label: string;
 }
 
 const navItems: NavItem[] = [
@@ -134,21 +134,21 @@ const navItems: NavItem[] = [
     ),
     label: "Analytics",
   },
-]
+];
 
 export default function AdminLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   const isActive = (href: string) => {
     if (href === "/admin") {
-      return pathname === href
+      return pathname === href;
     }
-    return pathname.startsWith(href)
-  }
+    return pathname.startsWith(href);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -170,8 +170,10 @@ export default function AdminLayout({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
-                  isActive(item.href) ? "text-[#1045A1] bg-blue-50" : "text-gray-600 hover:bg-gray-50"
+                className={`flex text-sm items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                  isActive(item.href)
+                    ? "text-[#1045A1] bg-blue-50"
+                    : "text-gray-600 hover:bg-gray-50"
                 }`}
               >
                 {item.icon}
@@ -221,5 +223,5 @@ export default function AdminLayout({
         <main className="p-8">{children}</main>
       </div>
     </div>
-  )
+  );
 }
