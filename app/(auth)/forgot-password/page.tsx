@@ -1,38 +1,38 @@
-'use client'
+"use client";
 
-import { useRouter } from "next/navigation"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import Link from "next/link"
-import { forgotPasswordSchema } from "@/lib/validations/auth"
-import type { z } from "zod"
-import axios from "axios"
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { forgotPasswordSchema } from "@/lib/validations/auth";
+import type { z } from "zod";
+import { useForgotPassword } from "@/hooks/use-auth";
 
-type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>
+type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
 
 export default function ForgotPasswordPage() {
-  const router = useRouter()
+  const { mutate: forgotPassword, isPending } = useForgotPassword();
 
   const form = useForm<ForgotPasswordForm>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
       email: "",
     },
-  })
+  });
 
-  const onSubmit = async (data: ForgotPasswordForm) => {
-    try {
-      await axios.post('/api/auth/forgot-password', data);
-      router.push("/login");
-    } catch (error) {
-      console.error("Forgot password error:", error);
-      // Handle error (show toast, etc)
-    }
-  }
+  const onSubmit = (data: ForgotPasswordForm) => {
+    forgotPassword(data);
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
@@ -41,7 +41,8 @@ export default function ForgotPasswordPage() {
           <div className="space-y-2 text-center">
             <h1 className="text-2xl font-bold">Forgot your password?</h1>
             <p className="text-gray-600">
-              Enter your email below and we'll send you instructions to reset it.
+              Enter your email below and we'll send you instructions to reset
+              it.
             </p>
           </div>
 
@@ -61,7 +62,11 @@ export default function ForgotPasswordPage() {
                 )}
               />
 
-              <Button type="submit" className="w-full bg-[#1045A1] hover:bg-[#0D3A8B] text-white py-6">
+              <Button
+                type="submit"
+                className="w-full bg-[#1045A1] hover:bg-[#0D3A8B] text-white py-6"
+                isLoading={isPending}
+              >
                 Send Reset Instructions
               </Button>
             </form>
@@ -76,5 +81,5 @@ export default function ForgotPasswordPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

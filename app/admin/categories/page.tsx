@@ -1,53 +1,49 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Trash2 } from "lucide-react";
-import { AddCategoryDialog } from "@/components/add-category-dialog";
-import axios from "@/lib/axios";
-
-interface Category {
-  _id: string;
-  categoryName: string;
-  description: string;
-  createdAt: string;
-}
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { DataTable } from "@/components/ui/data-table"
+import { Trash2 } from "lucide-react"
+import { AddCategoryDialog } from "@/components/add-category-dialog"
+import { useCategories, useDeleteCategory } from "@/hooks/use-categories"
+import type { ColumnDef } from "@tanstack/react-table"
+import type { Category } from "@/lib/validations/category"
 
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showAddDialog, setShowAddDialog] = useState(false)
+  const { data: categories, isLoading } = useCategories()
+  const { mutate: deleteCategory, isPending: isDeleting } = useDeleteCategory()
 
-  const fetchCategories = async () => {
-    try {
-      const response = await axios.get("/categories");
-      setCategories(response.data);
-    } catch (error) {
-      console.error("Fetch categories error:", error);
-      // Handle error (show toast, etc)
-    }
-  };
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const handleDeleteCategory = async (categoryId: string) => {
-    try {
-      await axios.delete(`/categories/${categoryId}`);
-      fetchCategories();
-    } catch (error) {
-      console.error("Delete category error:", error);
-      // Handle error (show toast, etc)
-    }
-  };
+  const columns: ColumnDef<Category>[] = [
+    {
+      accessorKey: "categoryName",
+      header: "Category Name",
+    },
+    {
+      accessorKey: "description",
+      header: "Description",
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Created At",
+      cell: ({ row }) => new Date(row.original.createdAt).toLocaleDateString(),
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => deleteCategory(row.original._id)}
+            isLoading={isDeleting}
+          >
+            <Trash2 className="h-4 w-4 text-gray-500" />
+          </Button>
+        </div>
+      ),
+    },
+  ]
 
   return (
     <div className="space-y-6">
@@ -66,51 +62,22 @@ export default function CategoriesPage() {
           <div className="flex items-center gap-2">
             <h2 className="font-semibold">Current Categories</h2>
             <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-              {categories.length} categories
+              {categories?.length || 0} categories
             </span>
           </div>
         </div>
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Category Name</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead className="w-20"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {categories.map((category) => (
-              <TableRow key={category._id}>
-                <TableCell className="font-medium">
-                  {category.categoryName}
-                </TableCell>
-                <TableCell>{category.description}</TableCell>
-                <TableCell>
-                  {new Date(category.createdAt).toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <button
-                      className="p-1 hover:bg-gray-100 rounded"
-                      onClick={() => handleDeleteCategory(category._id)}
-                    >
-                      <Trash2 className="w-4 h-4 text-gray-500" />
-                    </button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <DataTable
+          columns={columns}
+          data={categories || []}
+          isLoading={isLoading}
+        />
       </div>
 
       <AddCategoryDialog
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
-        onSuccess={fetchCategories}
       />
     </div>
-  );
+  )
 }

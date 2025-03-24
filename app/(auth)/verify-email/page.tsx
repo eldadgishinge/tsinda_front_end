@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -15,9 +14,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { verifyCodeSchema } from "@/lib/validations/auth";
 import type { z } from "zod";
-import axios from "@/lib/axios";
+import { useVerifyEmail } from "@/hooks/use-auth";
 
 type VerifyForm = z.infer<typeof verifyCodeSchema>;
 
@@ -25,6 +25,7 @@ export default function VerifyEmailPage() {
   const router = useRouter();
   const [userId, setUserId] = useState<string>("");
   const [timeLeft, setTimeLeft] = useState(60);
+  const { mutate: verifyEmail, isPending } = useVerifyEmail();
 
   useEffect(() => {
     const id = localStorage.getItem("verifyUserId");
@@ -49,36 +50,8 @@ export default function VerifyEmailPage() {
     },
   });
 
-  const onSubmit = async (data: VerifyForm) => {
-    try {
-      const response = await axios.post("/auth/verify", {
-        userId,
-        verificationCode: data.code,
-      });
-
-      localStorage.removeItem("verifyUserId");
-      localStorage.setItem("token", response.data.token);
-
-      // Redirect based on role
-      if (response.data.user.role === "admin") {
-        router.push("/admin");
-      } else {
-        router.push("/dashboard");
-      }
-    } catch (error) {
-      console.error("Verification error:", error);
-      // Handle error (show toast, etc)
-    }
-  };
-
-  const resendCode = async () => {
-    try {
-      await axios.post("/api/auth/resend-verification", { userId });
-      setTimeLeft(60);
-    } catch (error) {
-      console.error("Resend code error:", error);
-      // Handle error (show toast, etc)
-    }
+  const onSubmit = (data: VerifyForm) => {
+    verifyEmail({ userId, verificationCode: data.code });
   };
 
   return (
@@ -112,19 +85,19 @@ export default function VerifyEmailPage() {
                 )}
               />
 
-              <Button
+              <button
                 type="button"
-                variant="ghost"
                 className="w-full text-center text-sm text-gray-500"
                 disabled={timeLeft > 0}
-                onClick={resendCode}
+                onClick={() => setTimeLeft(60)}
               >
                 {timeLeft > 0 ? `Resend code in ${timeLeft}s` : "Resend code"}
-              </Button>
+              </button>
 
               <Button
                 type="submit"
                 className="w-full bg-[#1045A1] hover:bg-[#0D3A8B] text-white py-6"
+                isLoading={isPending}
               >
                 Verify Email
               </Button>

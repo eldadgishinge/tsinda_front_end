@@ -28,6 +28,7 @@ import {
 import { createUserSchema } from "@/lib/validations/auth";
 import type { z } from "zod";
 import axios from "@/lib/axios";
+import { useCreateUser } from "@/hooks/use-users";
 
 type CreateUserForm = z.infer<typeof createUserSchema>;
 
@@ -53,16 +54,16 @@ export function AddUserDialog({
     },
   });
 
+  const { mutate, isPending } = useCreateUser();
+
   const onSubmit = async (data: CreateUserForm) => {
-    try {
-      await axios.post("/auth/signup", data);
-      form.reset();
-      onOpenChange(false);
-      onSuccess?.();
-    } catch (error) {
-      console.error("Create user error:", error);
-      // Handle error (show toast, etc)
-    }
+    mutate(data, {
+      onSuccess: () => {
+        form.reset();
+        onOpenChange(false);
+        onSuccess?.();
+      },
+    });
   };
 
   return (
@@ -158,6 +159,8 @@ export function AddUserDialog({
             <Button
               type="submit"
               className="w-full bg-[#1045A1] hover:bg-[#0D3A8B] h-12"
+              isLoading={isPending}
+              loadingText="Creating..."
             >
               Create User
             </Button>

@@ -28,38 +28,22 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createExamSchema, type CreateExamForm } from "@/lib/validations/exam";
-import type { Question } from "@/lib/validations/question";
-import axios from "@/lib/axios";
-
-interface Category {
-  _id: string;
-  categoryName: string;
-}
-
-interface Course {
-  _id: string;
-  title: string;
-}
+import { useCreateExam } from "@/hooks/use-exams";
+import { useCategories } from "@/hooks/use-categories";
+import { useCourses } from "@/hooks/use-courses";
+import { useQuestions } from "@/hooks/use-questions";
 
 interface AddExamDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
-  categories: Category[];
-  courses: Course[];
-  questions: Question[];
 }
 
-const statuses = ["Draft", "Published", "Archived"] as const;
+export function AddExamDialog({ open, onOpenChange }: AddExamDialogProps) {
+  const { mutate: createExam, isPending } = useCreateExam();
+  const { data: categories } = useCategories();
+  const { data: courses } = useCourses();
+  const { data: questions } = useQuestions();
 
-export function AddExamDialog({
-  open,
-  onOpenChange,
-  onSuccess,
-  categories,
-  courses,
-  questions,
-}: AddExamDialogProps) {
   const form = useForm<CreateExamForm>({
     resolver: zodResolver(createExamSchema),
     defaultValues: {
@@ -74,21 +58,18 @@ export function AddExamDialog({
     },
   });
 
-  const onSubmit = async (data: CreateExamForm) => {
-    try {
-      await axios.post("/exams", data);
-      form.reset();
-      onOpenChange(false);
-      onSuccess?.();
-    } catch (error) {
-      console.error("Create exam error:", error);
-      // Handle error (show toast, etc)
-    }
+  const onSubmit = (data: CreateExamForm) => {
+    createExam(data, {
+      onSuccess: () => {
+        form.reset();
+        onOpenChange(false);
+      },
+    });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[800px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Add New Exam</DialogTitle>
         </DialogHeader>
@@ -100,7 +81,7 @@ export function AddExamDialog({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Exam Title</FormLabel>
+                  <FormLabel>Title</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -170,7 +151,7 @@ export function AddExamDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {categories.map((category) => (
+                        {categories?.map((category) => (
                           <SelectItem key={category._id} value={category._id}>
                             {category.categoryName}
                           </SelectItem>
@@ -198,7 +179,7 @@ export function AddExamDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {courses.map((course) => (
+                        {courses?.map((course) => (
                           <SelectItem key={course._id} value={course._id}>
                             {course.title}
                           </SelectItem>
@@ -226,11 +207,9 @@ export function AddExamDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {statuses.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {status}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="Draft">Draft</SelectItem>
+                        <SelectItem value="Published">Published</SelectItem>
+                        <SelectItem value="Archived">Archived</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -239,72 +218,71 @@ export function AddExamDialog({
               />
             </div>
 
-            <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="questions"
-                render={() => (
-                  <FormItem>
-                    <FormLabel>Questions</FormLabel>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border rounded-lg p-4">
-                      {questions.map((question) => (
-                        <div
-                          key={question._id}
-                          className="flex items-start gap-2"
-                        >
-                          <Checkbox
-                            checked={form
-                              .watch("questions")
-                              .includes(question._id)}
-                            onCheckedChange={(checked) => {
-                              const currentQuestions =
-                                form.getValues("questions");
-                              if (checked) {
-                                form.setValue("questions", [
-                                  ...currentQuestions,
-                                  question._id,
-                                ]);
-                              } else {
-                                form.setValue(
-                                  "questions",
-                                  currentQuestions.filter(
-                                    (id) => id !== question._id
-                                  )
-                                );
-                              }
-                            }}
-                          />
-                          <div className="space-y-1">
-                            <p className="text-sm">{question.text}</p>
-                            <div className="flex gap-2">
-                              <span
-                                className={`text-xs px-2 py-0.5 rounded-full ${
-                                  question.difficulty === "Easy"
-                                    ? "bg-green-100 text-green-700"
-                                    : question.difficulty === "Medium"
-                                    ? "bg-yellow-100 text-yellow-700"
-                                    : "bg-red-100 text-red-700"
-                                }`}
-                              >
-                                {question.difficulty}
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                {question.category.categoryName}
-                              </span>
-                            </div>
+            <FormField
+              control={form.control}
+              name="questions"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Questions</FormLabel>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border rounded-lg p-4">
+                    {questions?.map((question) => (
+                      <div
+                        key={question._id}
+                        className="flex items-start gap-2"
+                      >
+                        <Checkbox
+                          checked={form
+                            .watch("questions")
+                            .includes(question._id)}
+                          onCheckedChange={(checked) => {
+                            const currentQuestions =
+                              form.getValues("questions");
+                            if (checked) {
+                              form.setValue("questions", [
+                                ...currentQuestions,
+                                question._id,
+                              ]);
+                            } else {
+                              form.setValue(
+                                "questions",
+                                currentQuestions.filter(
+                                  (id) => id !== question._id
+                                )
+                              );
+                            }
+                          }}
+                        />
+                        <div className="space-y-1">
+                          <p className="text-sm">{question.text}</p>
+                          <div className="flex gap-2">
+                            <span
+                              className={`text-xs px-2 py-0.5 rounded-full ${
+                                question.difficulty === "Easy"
+                                  ? "bg-green-100 text-green-700"
+                                  : question.difficulty === "Medium"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : "bg-red-100 text-red-700"
+                              }`}
+                            >
+                              {question.difficulty}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {question.category.categoryName}
+                            </span>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                      </div>
+                    ))}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <Button
               type="submit"
               className="w-full bg-[#1045A1] hover:bg-[#0D3A8B] h-12"
+              isLoading={isPending}
             >
               Create Exam
             </Button>

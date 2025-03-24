@@ -49,3 +49,13 @@ export const createUserSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
   role: z.enum(["instructor", "admin"]),
 });
+
+export interface User {
+  _id: string
+  name: string
+  email: string
+  phoneNumber: string
+  role: "user" | "admin" | "instructor"
+  isVerified: boolean
+  createdAt: string
+}

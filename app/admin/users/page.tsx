@@ -1,85 +1,75 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Pencil, Trash2, MoreVertical, User } from "lucide-react";
-import Image from "next/image";
-import { AddUserDialog } from "@/components/add-user-dialog";
-import axios from "@/lib/axios";
-
-interface User {
-  _id: string;
-  name: string;
-  email: string;
-  phoneNumber: string;
-  role: string;
-  isVerified: boolean;
-  createdAt: string;
-}
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { DataTable } from "@/components/ui/data-table"
+import { Trash2 } from "lucide-react"
+import { AddUserDialog } from "@/components/add-user-dialog"
+import { useUsers, useDeleteUser } from "@/hooks/use-users"
+import type { ColumnDef } from "@tanstack/react-table"
+import type { User } from "@/lib/validations/auth"
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showAddDialog, setShowAddDialog] = useState(false)
+  const { data: users, isLoading } = useUsers()
+  const { mutate: deleteUser, isPending: isDeleting } = useDeleteUser()
 
-  const fetchUsers = async () => {
-    try {
-      const response = await axios.get<User[]>("/auth/all");
-      setUsers(response.data);
-    } catch (error) {
-      console.error("Fetch users error:", error);
-      // Handle error (show toast, etc)
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const toggleUser = (userId: string) => {
-    setSelectedUsers((prev) =>
-      prev.includes(userId)
-        ? prev.filter((id) => id !== userId)
-        : [...prev, userId]
-    );
-  };
-
-  const toggleAll = () => {
-    setSelectedUsers((prev) =>
-      prev.length === users.length ? [] : users.map((user) => user._id)
-    );
-  };
-
-  const handleDeleteUser = async (userId: string) => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`/api/users/${userId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete user");
-      }
-
-      // Refresh users list
-      fetchUsers();
-    } catch (error) {
-      console.error("Delete user error:", error);
-      // Handle error (show toast, etc)
-    }
-  };
+  const columns: ColumnDef<User>[] = [
+    {
+      accessorKey: "name",
+      header: "Name",
+    },
+    {
+      accessorKey: "email",
+      header: "Email",
+    },
+    {
+      accessorKey: "phoneNumber",
+      header: "Phone",
+    },
+    {
+      accessorKey: "role",
+      header: "Role",
+      cell: ({ row }) => (
+        <span className={`inline-block px-2 py-1 rounded-full text-xs ${
+          row.original.role === "admin" 
+            ? "bg-blue-100 text-blue-700" 
+            : row.original.role === "instructor"
+            ? "bg-green-100 text-green-700"
+            : "bg-gray-100 text-gray-700"
+        }`}>
+          {row.original.role}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "isVerified",
+      header: "Status",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <div className={`w-1.5 h-1.5 rounded-full ${
+            row.original.isVerified ? "bg-green-500" : "bg-yellow-500"
+          }`} />
+          <span>{row.original.isVerified ? "Active" : "Pending"}</span>
+        </div>
+      ),
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => deleteUser(row.original._id)}
+            isLoading={isDeleting}
+          >
+            <Trash2 className="h-4 w-4 text-gray-500" />
+          </Button>
+        </div>
+      ),
+    },
+  ]
 
   return (
     <div className="space-y-6">
@@ -98,85 +88,22 @@ export default function UsersPage() {
           <div className="flex items-center gap-2">
             <h2 className="font-semibold">Current Users</h2>
             <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-              {users.length} users
+              {users?.length || 0} users
             </span>
           </div>
         </div>
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12">
-                <Checkbox
-                  checked={selectedUsers.length === users.length}
-                  onCheckedChange={toggleAll}
-                />
-              </TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Email address</TableHead>
-              <TableHead>Phone number</TableHead>
-              <TableHead className="w-20"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users.map((user) => (
-              <TableRow key={user._id}>
-                <TableCell>
-                  <Checkbox
-                    checked={selectedUsers.includes(user._id)}
-                    onCheckedChange={() => toggleUser(user._id)}
-                  />
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100">
-                      <Image
-                        src="/placeholder.svg"
-                        alt={user.name}
-                        width={40}
-                        height={40}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <span className="font-medium">{user.name}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        user.isVerified ? "bg-green-500" : "bg-yellow-500"
-                      }`}
-                    />
-                    <span>{user.isVerified ? "Active" : "Pending"}</span>
-                  </div>
-                </TableCell>
-                <TableCell>{user.role}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>{user.phoneNumber}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <button
-                      className="p-1 hover:bg-gray-100 rounded"
-                      onClick={() => handleDeleteUser(user._id)}
-                    >
-                      <Trash2 className="w-4 h-4 text-gray-500" />
-                    </button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <DataTable
+          columns={columns}
+          data={users || []}
+          isLoading={isLoading}
+        />
       </div>
 
       <AddUserDialog
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
-        onSuccess={fetchUsers}
       />
     </div>
-  );
+  )
 }

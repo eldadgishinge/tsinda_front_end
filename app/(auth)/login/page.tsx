@@ -1,13 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -18,15 +15,15 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
 import { loginSchema } from "@/lib/validations/auth";
 import type { z } from "zod";
-import axios from "@/lib/axios";
+import { useLogin } from "@/hooks/use-auth";
 
 type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
+  const { mutate: login, isPending } = useLogin();
 
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -36,27 +33,8 @@ export default function LoginPage() {
     },
   });
 
-  const onSubmit = async (data: LoginForm) => {
-    try {
-      const response = await axios.post("/auth/login", data);
-
-      localStorage.setItem("token", response.data.token);
-      // Redirect based on role
-      if (response.data.user.role === "admin") {
-        router.push("/admin");
-      } else {
-        router.push("/dashboard");
-      }
-    } catch (error: any) {
-      if (error.response?.data.userId) {
-        // User needs to verify email
-        localStorage.setItem("verifyUserId", error.response.data.userId);
-        router.push("/verify-email");
-        return;
-      }
-      console.error("Login error:", error);
-      // Handle error (show toast, etc)
-    }
+  const onSubmit = (data: LoginForm) => {
+    login(data);
   };
 
   return (
@@ -80,13 +58,7 @@ export default function LoginPage() {
           </h1>
 
           <Form {...form}>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                form.handleSubmit(onSubmit)(e);
-              }}
-              className="space-y-4"
-            >
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="phoneNumber"
@@ -109,21 +81,12 @@ export default function LoginPage() {
                     <FormLabel>Password</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input
-                          {...field}
-                          type={showPassword ? "text" : "password"}
-                          className="pr-10"
-                        />
+                        <Input {...field} type="password" className="pr-10" />
                         <button
                           type="button"
-                          onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
                         >
-                          {showPassword ? (
-                            <EyeOff className="h-5 w-5" />
-                          ) : (
-                            <Eye className="h-5 w-5" />
-                          )}
+                          <Eye className="h-5 w-5" />
                         </button>
                       </div>
                     </FormControl>
@@ -142,7 +105,7 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 className="w-full bg-[#1045A1] hover:bg-[#0D3A8B] text-white py-6"
-                disabled={form.formState.isSubmitting}
+                isLoading={isPending}
               >
                 Sign In
               </Button>

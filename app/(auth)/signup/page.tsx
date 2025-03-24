@@ -1,12 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Eye } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -17,16 +14,15 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
 import { signupSchema } from "@/lib/validations/auth";
 import type { z } from "zod";
-import axios from "@/lib/axios";
+import { useSignup } from "@/hooks/use-auth";
 
 type SignupForm = z.infer<typeof signupSchema>;
 
 export default function SignUpPage() {
-  const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { mutate: signup, isPending } = useSignup();
 
   const form = useForm<SignupForm>({
     resolver: zodResolver(signupSchema),
@@ -39,20 +35,8 @@ export default function SignUpPage() {
     },
   });
 
-  const onSubmit = async (data: SignupForm) => {
-    try {
-      const response = await axios.post("/auth/signup", {
-        ...data,
-        role: "user", // Always set role as user for signup
-      });
-
-      // Store userId for verification
-      localStorage.setItem("verifyUserId", response.data.userId);
-      router.push("/verify-email");
-    } catch (error) {
-      console.error("Signup error:", error);
-      // Handle error (show toast, etc)
-    }
+  const onSubmit = (data: SignupForm) => {
+    signup(data);
   };
 
   return (
@@ -115,21 +99,12 @@ export default function SignUpPage() {
                     <FormLabel>Password</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input
-                          {...field}
-                          type={showPassword ? "text" : "password"}
-                          className="pr-10"
-                        />
+                        <Input {...field} type="password" className="pr-10" />
                         <button
                           type="button"
-                          onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
                         >
-                          {showPassword ? (
-                            <EyeOff className="h-5 w-5" />
-                          ) : (
-                            <Eye className="h-5 w-5" />
-                          )}
+                          <Eye className="h-5 w-5" />
                         </button>
                       </div>
                     </FormControl>
@@ -146,23 +121,12 @@ export default function SignUpPage() {
                     <FormLabel>Confirm Password</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input
-                          {...field}
-                          type={showConfirmPassword ? "text" : "password"}
-                          className="pr-10"
-                        />
+                        <Input {...field} type="password" className="pr-10" />
                         <button
                           type="button"
-                          onClick={() =>
-                            setShowConfirmPassword(!showConfirmPassword)
-                          }
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
                         >
-                          {showConfirmPassword ? (
-                            <EyeOff className="h-5 w-5" />
-                          ) : (
-                            <Eye className="h-5 w-5" />
-                          )}
+                          <Eye className="h-5 w-5" />
                         </button>
                       </div>
                     </FormControl>
@@ -174,6 +138,7 @@ export default function SignUpPage() {
               <Button
                 type="submit"
                 className="w-full bg-[#1045A1] hover:bg-[#0D3A8B] text-white py-6"
+                isLoading={isPending}
               >
                 Create Account
               </Button>

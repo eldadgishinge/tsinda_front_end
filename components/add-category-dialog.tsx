@@ -1,16 +1,16 @@
-"use client";
+"use client"
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Form,
   FormControl,
@@ -18,43 +18,37 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import {
-  createCategorySchema,
-  type CreateCategoryForm,
-} from "@/lib/validations/category";
-import axios from "@/lib/axios";
+} from "@/components/ui/form"
+import { createCategorySchema, type CreateCategoryForm } from "@/lib/validations/category"
+import { useCreateCategory } from "@/hooks/use-categories"
 
 interface AddCategoryDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
 export function AddCategoryDialog({
   open,
   onOpenChange,
-  onSuccess,
 }: AddCategoryDialogProps) {
+  const { mutate: createCategory, isPending } = useCreateCategory()
+
   const form = useForm<CreateCategoryForm>({
     resolver: zodResolver(createCategorySchema),
     defaultValues: {
       categoryName: "",
       description: "",
     },
-  });
+  })
 
-  const onSubmit = async (data: CreateCategoryForm) => {
-    try {
-      await axios.post("/categories", data);
-      form.reset();
-      onOpenChange(false);
-      onSuccess?.();
-    } catch (error) {
-      console.error("Create category error:", error);
-      // Handle error (show toast, etc)
-    }
-  };
+  const onSubmit = (data: CreateCategoryForm) => {
+    createCategory(data, {
+      onSuccess: () => {
+        form.reset()
+        onOpenChange(false)
+      },
+    })
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -98,6 +92,7 @@ export function AddCategoryDialog({
             <Button
               type="submit"
               className="w-full bg-[#1045A1] hover:bg-[#0D3A8B] h-12"
+              isLoading={isPending}
             >
               Create Category
             </Button>
@@ -105,5 +100,5 @@ export function AddCategoryDialog({
         </Form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

@@ -25,60 +25,50 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   createQuestionSchema,
   type CreateQuestionForm,
 } from "@/lib/validations/question";
-import axios from "@/lib/axios";
-
-interface Category {
-  _id: string;
-  categoryName: string;
-}
+import { useCreateQuestion } from "@/hooks/use-questions";
+import { useCategories } from "@/hooks/use-categories";
 
 interface AddQuestionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
-  categories: Category[];
 }
-
-const difficulties = ["Easy", "Medium", "Hard"] as const;
-const statuses = ["Active", "Inactive"] as const;
 
 export function AddQuestionDialog({
   open,
   onOpenChange,
-  onSuccess,
-  categories,
 }: AddQuestionDialogProps) {
+  const { mutate: createQuestion, isPending } = useCreateQuestion();
+  const { data: categories } = useCategories();
+
   const form = useForm<CreateQuestionForm>({
     resolver: zodResolver(createQuestionSchema),
     defaultValues: {
       text: "",
       imageUrl: "",
       answerOptions: [
-        { text: "", isCorrect: false },
+        { text: "", isCorrect: true },
         { text: "", isCorrect: false },
         { text: "", isCorrect: false },
         { text: "", isCorrect: false },
       ],
-      difficulty: undefined,
-      status: undefined,
+      difficulty: "Medium",
+      status: "Active",
       category: undefined,
     },
   });
 
-  const onSubmit = async (data: CreateQuestionForm) => {
-    try {
-      await axios.post("/questions", data);
-      form.reset();
-      onOpenChange(false);
-      onSuccess?.();
-    } catch (error) {
-      console.error("Create question error:", error);
-      // Handle error (show toast, etc)
-    }
+  const onSubmit = (data: CreateQuestionForm) => {
+    createQuestion(data, {
+      onSuccess: () => {
+        form.reset();
+        onOpenChange(false);
+      },
+    });
   };
 
   return (
@@ -145,10 +135,8 @@ export function AddQuestionDialog({
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <input
-                            type="radio"
-                            checked={field.value}
-                            onChange={() => {
+                          <RadioGroup
+                            onValueChange={(value) => {
                               // Uncheck all other options
                               form.setValue(
                                 "answerOptions",
@@ -160,8 +148,10 @@ export function AddQuestionDialog({
                                   }))
                               );
                             }}
-                            className="h-4 w-4 text-[#1045A1]"
-                          />
+                            value={field.value ? "correct" : undefined}
+                          >
+                            <RadioGroupItem value="correct" />
+                          </RadioGroup>
                         </FormControl>
                       </FormItem>
                     )}
@@ -187,11 +177,9 @@ export function AddQuestionDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {difficulties.map((difficulty) => (
-                          <SelectItem key={difficulty} value={difficulty}>
-                            {difficulty}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="Easy">Easy</SelectItem>
+                        <SelectItem value="Medium">Medium</SelectItem>
+                        <SelectItem value="Hard">Hard</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -215,11 +203,8 @@ export function AddQuestionDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {statuses.map((status) => (
-                          <SelectItem key={status} value={status}>
-                            {status}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="Active">Active</SelectItem>
+                        <SelectItem value="Inactive">Inactive</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -243,7 +228,7 @@ export function AddQuestionDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {categories.map((category) => (
+                        {categories?.map((category) => (
                           <SelectItem key={category._id} value={category._id}>
                             {category.categoryName}
                           </SelectItem>
@@ -259,6 +244,7 @@ export function AddQuestionDialog({
             <Button
               type="submit"
               className="w-full bg-[#1045A1] hover:bg-[#0D3A8B] h-12"
+              isLoading={isPending}
             >
               Create Question
             </Button>

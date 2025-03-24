@@ -31,6 +31,7 @@ import {
   type CreateCourseForm,
 } from "@/lib/validations/course";
 import axios from "@/lib/axios";
+import { useCreateCourse } from "@/hooks/use-courses";
 
 interface Category {
   _id: string;
@@ -73,16 +74,16 @@ export function AddCourseDialog({
     },
   });
 
+  const { mutate, isPending } = useCreateCourse();
+
   const onSubmit = async (data: CreateCourseForm) => {
-    try {
-      await axios.post("/courses", data);
-      form.reset();
-      onOpenChange(false);
-      onSuccess?.();
-    } catch (error) {
-      console.error("Create course error:", error);
-      // Handle error (show toast, etc)
-    }
+    mutate(data, {
+      onSuccess: () => {
+        form.reset();
+        onOpenChange(false);
+        onSuccess?.();
+      },
+    });
   };
 
   return (
@@ -244,6 +245,8 @@ export function AddCourseDialog({
             <Button
               type="submit"
               className="w-full bg-[#1045A1] hover:bg-[#0D3A8B] h-12"
+              isLoading={isPending}
+              loadingText="Creating..."
             >
               Create Course
             </Button>
