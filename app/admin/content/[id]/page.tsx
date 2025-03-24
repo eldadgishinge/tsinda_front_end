@@ -1,35 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import type { Course } from "@/lib/validations/course";
 import axios from "@/lib/axios";
+import { useCourse } from "@/hooks/use-courses";
+import { useState } from "react";
 
 export default function CourseDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const [course, setCourse] = useState<Course | null>(null);
-
-  useEffect(() => {
-    const fetchCourse = async () => {
-      try {
-        const response = await axios.get(`/courses/${params.id}`);
-        setCourse(response.data);
-      } catch (error) {
-        console.error("Fetch course error:", error);
-        // Handle error (show toast, etc)
-      }
-    };
-
-    fetchCourse();
-  }, [params.id]);
+  const { data: course } = useCourse(params?.id?.toString());
+  const [isPublishing, setIsPublishing] = useState(false);
 
   const handlePublish = async () => {
     try {
+      setIsPublishing(true);
       await axios.put(`/courses/${params.id}`, {
         isPublished: true,
       });
@@ -37,11 +25,17 @@ export default function CourseDetailsPage() {
     } catch (error) {
       console.error("Publish course error:", error);
       // Handle error (show toast, etc)
+    } finally {
+      setIsPublishing(false);
     }
   };
 
   if (!course) {
-    return null; // Loading state
+    return (
+      <div className="h-96 flex flex-col items-center justify-center">
+        <div className="w-8 h-8 bg-transparent rounded-full border-2 border-neutral-600 border-b-transparent animate-spin" />
+      </div>
+    );
   }
 
   return (
@@ -79,7 +73,7 @@ export default function CourseDetailsPage() {
 
               <div>
                 <span className="text-sm text-gray-500">Instructor</span>
-                <p className="text-sm">{course.instructor.name}</p>
+                <p className="text-sm">{course.instructor.email}</p>
               </div>
 
               <div>
@@ -141,6 +135,8 @@ export default function CourseDetailsPage() {
         <Button
           className="bg-[#1045A1] hover:bg-[#0D3A8B]"
           onClick={handlePublish}
+          isLoading={isPublishing}
+          loadingText="Publishing..."
         >
           Publish Course
         </Button>
