@@ -46,6 +46,21 @@ const navItems: NavItem[] = [
     label: "User Management",
   },
   {
+    href: "/admin/categories",
+    icon: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10 0a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+    label: "Categories",
+  },
+  {
     href: "/admin/content",
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
@@ -61,6 +76,21 @@ const navItems: NavItem[] = [
     label: "Content Management",
   },
   {
+    href: "/admin/questions",
+    icon: (
+      <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+    label: "Questions",
+  },
+  {
     href: "/admin/exams",
     icon: (
       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
@@ -72,7 +102,7 @@ const navItems: NavItem[] = [
         />
       </svg>
     ),
-    label: "Exams Management",
+    label: "Exams",
   },
   {
     href: "/admin/payments",
@@ -193,4 +223,3 @@ export default function AdminLayout({
     </div>
   )
 }
-
