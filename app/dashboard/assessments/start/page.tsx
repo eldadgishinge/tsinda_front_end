@@ -1,14 +1,13 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { X } from "lucide-react"
-import Link from "next/link"
-import { useSearchParams, useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-import { ExitAssessmentDialog } from "@/components/exit-assessment-dialog"
+import { useState, useEffect } from "react";
+import { X } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { ExitAssessmentDialog } from "@/components/exit-assessment-dialog";
 
 // Sample questions data
 const questions = [
@@ -24,37 +23,39 @@ const questions = [
     ],
   },
   // Add more questions as needed
-]
+];
 
 export default function AssessmentStartPage() {
-  const searchParams = useSearchParams()
-  const [showExitDialog, setShowExitDialog] = useState(false)
-  const totalQuestions = Number.parseInt(searchParams.get("count") || "25")
-  const [currentQuestion, setCurrentQuestion] = useState(2) // 3rd question (0-based index)
-  const [selectedAnswer, setSelectedAnswer] = useState<string>("")
-  const [timeLeft, setTimeLeft] = useState(totalQuestions * 60) // 1 minute per question
+  // const searchParams = useSearchParams();
+  const [showExitDialog, setShowExitDialog] = useState(false);
+  const totalQuestions = 10; //Number.parseInt(searchParams.get("count") || "25");
+  const [currentQuestion, setCurrentQuestion] = useState(2); // 3rd question (0-based index)
+  const [selectedAnswer, setSelectedAnswer] = useState<string>("");
+  const [timeLeft, setTimeLeft] = useState(totalQuestions * 60); // 1 minute per question
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0))
-    }, 1000)
-    return () => clearInterval(timer)
-  }, [])
+      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    return `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`
-  }
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(
+      remainingSeconds
+    ).padStart(2, "0")}`;
+  };
 
-  const progress = ((currentQuestion + 1) / totalQuestions) * 100
+  const progress = ((currentQuestion + 1) / totalQuestions) * 100;
 
   const handleNext = () => {
     if (selectedAnswer) {
-      setCurrentQuestion((prev) => Math.min(totalQuestions - 1, prev + 1))
-      setSelectedAnswer("") // Reset selected answer for the next question
+      setCurrentQuestion((prev) => Math.min(totalQuestions - 1, prev + 1));
+      setSelectedAnswer(""); // Reset selected answer for the next question
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -84,24 +85,37 @@ export default function AssessmentStartPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Left Column: Question */}
           <div className="space-y-8">
-            <h1 className="text-2xl font-bold">3. What is the main purpose of ABS (Anti-lock Braking System)?</h1>
+            <h1 className="text-2xl font-bold">
+              3. What is the main purpose of ABS (Anti-lock Braking System)?
+            </h1>
             {questions[0].hasImage && (
               <div className="w-full aspect-square relative rounded-3xl overflow-hidden bg-[#FBF7F0] p-12">
-                <img src="/placeholder.svg" alt="Question illustration" className="w-full h-full object-contain" />
+                <img
+                  src="/placeholder.svg"
+                  alt="Question illustration"
+                  className="w-full h-full object-contain"
+                />
               </div>
             )}
           </div>
 
           {/* Right Column: Options */}
           <div>
-            <RadioGroup value={selectedAnswer} onValueChange={setSelectedAnswer} className="space-y-4">
+            <RadioGroup
+              value={selectedAnswer}
+              onValueChange={setSelectedAnswer}
+              className="space-y-4"
+            >
               {questions[0].options.map((option, index) => (
                 <div
                   key={index}
                   className="flex items-center space-x-3 rounded-lg border p-4 cursor-pointer hover:border-[#1045A1] transition-colors"
                 >
                   <RadioGroupItem value={option} id={`option-${index}`} />
-                  <Label htmlFor={`option-${index}`} className="flex-grow cursor-pointer text-base text-gray-600">
+                  <Label
+                    htmlFor={`option-${index}`}
+                    className="flex-grow cursor-pointer text-base text-gray-600"
+                  >
                     {option}
                   </Label>
                 </div>
@@ -118,7 +132,9 @@ export default function AssessmentStartPage() {
             <Button
               variant="outline"
               className="w-32 h-12"
-              onClick={() => setCurrentQuestion((prev) => Math.max(0, prev - 1))}
+              onClick={() =>
+                setCurrentQuestion((prev) => Math.max(0, prev - 1))
+              }
             >
               BACK
             </Button>
@@ -138,8 +154,10 @@ export default function AssessmentStartPage() {
       </div>
 
       {/* Exit Confirmation Dialog */}
-      <ExitAssessmentDialog open={showExitDialog} onOpenChange={setShowExitDialog} />
+      <ExitAssessmentDialog
+        open={showExitDialog}
+        onOpenChange={setShowExitDialog}
+      />
     </div>
-  )
+  );
 }
-

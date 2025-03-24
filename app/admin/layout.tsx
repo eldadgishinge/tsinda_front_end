@@ -154,7 +154,7 @@ export default function AdminLayout({
     <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 h-full w-60 bg-white border-r">
-        <div className="p-4">
+        <div className="">
           <Image
             src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-hxaByNvU8TKzz1s5pL1JrvMKDa9Bvn.png"
             alt="Tsindacyane Logo"
