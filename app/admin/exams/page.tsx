@@ -23,7 +23,7 @@ export default function ExamsPage() {
     {
       accessorKey: "category",
       header: "Category",
-      cell: ({ row }) => row.original.category.categoryName,
+      cell: ({ row }) => row.original.category?.categoryName,
     },
     {
       accessorKey: "course",
@@ -33,7 +33,7 @@ export default function ExamsPage() {
     {
       accessorKey: "questions",
       header: "Questions",
-      cell: ({ row }) => row.original.questions.length,
+      cell: ({ row }) => row.original.questions?.length,
     },
     {
       accessorKey: "duration",

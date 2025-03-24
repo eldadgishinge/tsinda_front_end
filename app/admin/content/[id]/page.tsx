@@ -68,7 +68,7 @@ export default function CourseDetailsPage() {
 
               <div>
                 <span className="text-sm text-gray-500">Category</span>
-                <p className="text-sm">{course.category.categoryName}</p>
+                <p className="text-sm">{course.category?.categoryName}</p>
               </div>
 
               <div>

@@ -187,7 +187,7 @@ export function AddCourseDialog({ open, onOpenChange }: AddCourseDialogProps) {
                       <SelectContent>
                         {categories?.map((category) => (
                           <SelectItem key={category._id} value={category._id}>
-                            {category.categoryName}
+                            {category?.categoryName}
                           </SelectItem>
                         ))}
                       </SelectContent>

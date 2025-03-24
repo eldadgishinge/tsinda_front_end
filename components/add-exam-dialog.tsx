@@ -267,7 +267,7 @@ export function AddExamDialog({ open, onOpenChange }: AddExamDialogProps) {
                               {question.difficulty}
                             </span>
                             <span className="text-xs text-gray-500">
-                              {question.category.categoryName}
+                              {question.category?.categoryName}
                             </span>
                           </div>
                         </div>

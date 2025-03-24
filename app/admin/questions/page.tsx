@@ -22,7 +22,7 @@ export default function QuestionsPage() {
     {
       accessorKey: "category",
       header: "Category",
-      cell: ({ row }) => row.original.category.categoryName,
+      cell: ({ row }) => row.original.category?.categoryName,
     },
     {
       accessorKey: "difficulty",

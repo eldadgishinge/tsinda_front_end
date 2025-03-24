@@ -79,12 +79,12 @@ export default function ContentManagementPage() {
 
                     <div className="flex items-center justify-between text-sm text-gray-500">
                       <span>{course.language}</span>
-                      <span>{course.category.categoryName}</span>
+                      <span>{course.category?.categoryName}</span>
                     </div>
 
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-500">
-                        {course.instructor.name}
+                        {course.instructor?.name}
                       </span>
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
@@ -105,8 +105,8 @@ export default function ContentManagementPage() {
       <AddCourseDialog
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
-        categories={categories || []}
-        instructors={instructors || []}
+        // categories={categories || []}
+        // instructors={instructors || []}
       />
     </div>
   );
