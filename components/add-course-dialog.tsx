@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -30,60 +31,74 @@ import {
   createCourseSchema,
   type CreateCourseForm,
 } from "@/lib/validations/course";
-import axios from "@/lib/axios";
 import { useCreateCourse } from "@/hooks/use-courses";
-
-interface Category {
-  _id: string;
-  categoryName: string;
-}
-
-interface Instructor {
-  _id: string;
-  name: string;
-  email: string;
-}
+import { useCategories } from "@/hooks/use-categories";
+import { useUploadVideo, useUploadDocument } from "@/hooks/use-upload";
+import { VideoUpload } from "@/components/ui/video-upload";
+import { DocumentUpload } from "@/components/ui/document-upload";
+import { useUsers } from "@/hooks/use-users";
 
 interface AddCourseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
-  categories: Category[];
-  instructors: Instructor[];
 }
 
 const languages = ["English", "French", "Kinyarwanda"] as const;
 
-export function AddCourseDialog({
-  open,
-  onOpenChange,
-  onSuccess,
-  categories,
-  instructors,
-}: AddCourseDialogProps) {
+export function AddCourseDialog({ open, onOpenChange }: AddCourseDialogProps) {
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+
+  const { mutate: createCourse, isPending: isCreating } = useCreateCourse();
+  const { mutateAsync: uploadVideo, isPending: isUploadingVideo } =
+    useUploadVideo();
+  const { mutateAsync: uploadDocument, isPending: isUploadingDocument } =
+    useUploadDocument();
+  const { data: categories } = useCategories();
+  const { data: instructors } = useUsers();
+
   const form = useForm<CreateCourseForm>({
     resolver: zodResolver(createCourseSchema),
     defaultValues: {
       title: "",
       description: "",
-      language: undefined,
+      language: "English",
       category: undefined,
       instructor: undefined,
-      videoUrl: "",
-      documentUrl: "",
     },
   });
 
-  const { mutate, isPending } = useCreateCourse();
-
   const onSubmit = async (data: CreateCourseForm) => {
-    mutate(data, {
-      onSuccess: () => {
-        form.reset();
-        onOpenChange(false);
-        onSuccess?.();
-      },
-    });
+    try {
+      let videoUrl: string | undefined;
+      let documentUrl: string | undefined;
+
+      if (videoFile) {
+        videoUrl = await uploadVideo(videoFile);
+      }
+
+      if (documentFile) {
+        documentUrl = await uploadDocument(documentFile);
+      }
+
+      createCourse(
+        {
+          ...data,
+          videoUrl,
+          documentUrl,
+        },
+        {
+          onSuccess: () => {
+            form.reset();
+            setVideoFile(null);
+            setDocumentFile(null);
+            onOpenChange(false);
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Error creating course:", error);
+    }
   };
 
   return (
@@ -102,7 +117,7 @@ export function AddCourseDialog({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Course Title</FormLabel>
+                  <FormLabel>Title</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -170,7 +185,7 @@ export function AddCourseDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {categories.map((category) => (
+                        {categories?.map((category) => (
                           <SelectItem key={category._id} value={category._id}>
                             {category.categoryName}
                           </SelectItem>
@@ -198,7 +213,7 @@ export function AddCourseDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {instructors.map((instructor) => (
+                        {instructors?.map((instructor) => (
                           <SelectItem
                             key={instructor._id}
                             value={instructor._id}
@@ -213,40 +228,32 @@ export function AddCourseDialog({
                 )}
               />
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormItem>
+                <FormLabel>Video</FormLabel>
+                <VideoUpload
+                  onFileSelect={setVideoFile}
+                  onFileRemove={() => setVideoFile(null)}
+                  selectedFile={videoFile}
+                  uploading={isUploadingVideo}
+                />
+              </FormItem>
 
-            <FormField
-              control={form.control}
-              name="videoUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Video URL</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="url" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="documentUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Document URL</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="url" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormItem>
+                <FormLabel>Notes (Document)</FormLabel>
+                <DocumentUpload
+                  onFileSelect={setDocumentFile}
+                  onFileRemove={() => setDocumentFile(null)}
+                  selectedFile={documentFile}
+                  uploading={isUploadingDocument}
+                />
+              </FormItem>
+            </div>
 
             <Button
               type="submit"
               className="w-full bg-[#1045A1] hover:bg-[#0D3A8B] h-12"
-              isLoading={isPending}
-              loadingText="Creating..."
+              isLoading={isCreating || isUploadingVideo || isUploadingDocument}
             >
               Create Course
             </Button>
