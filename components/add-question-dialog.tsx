@@ -1,126 +1,270 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-import { Upload } from "lucide-react"
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  createQuestionSchema,
+  type CreateQuestionForm,
+} from "@/lib/validations/question";
+import axios from "@/lib/axios";
+
+interface Category {
+  _id: string;
+  categoryName: string;
+}
 
 interface AddQuestionDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
+  categories: Category[];
 }
 
-export function AddQuestionDialog({ open, onOpenChange }: AddQuestionDialogProps) {
+const difficulties = ["Easy", "Medium", "Hard"] as const;
+const statuses = ["Active", "Inactive"] as const;
+
+export function AddQuestionDialog({
+  open,
+  onOpenChange,
+  onSuccess,
+  categories,
+}: AddQuestionDialogProps) {
+  const form = useForm<CreateQuestionForm>({
+    resolver: zodResolver(createQuestionSchema),
+    defaultValues: {
+      text: "",
+      imageUrl: "",
+      answerOptions: [
+        { text: "", isCorrect: false },
+        { text: "", isCorrect: false },
+        { text: "", isCorrect: false },
+        { text: "", isCorrect: false },
+      ],
+      difficulty: undefined,
+      status: undefined,
+      category: undefined,
+    },
+  });
+
+  const onSubmit = async (data: CreateQuestionForm) => {
+    try {
+      await axios.post("/questions", data);
+      form.reset();
+      onOpenChange(false);
+      onSuccess?.();
+    } catch (error) {
+      console.error("Create question error:", error);
+      // Handle error (show toast, etc)
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[800px] w-[calc(100vw-2rem)] h-[calc(100vh-2rem)] max-h-[900px] flex flex-col p-0">
-        <DialogHeader className="px-6 py-4 border-b">
-          <DialogTitle className="text-2xl font-bold">Add New Question</DialogTitle>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold">
+            Add New Question
+          </DialogTitle>
         </DialogHeader>
-        <div className="flex-grow overflow-y-auto px-6 py-4">
-          <form className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Left Column - Question Details */}
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="question">Question text</Label>
-                  <Textarea id="question" placeholder="Enter your question" className="min-h-[120px]" />
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="answer">Correct Answers</Label>
-                  <Textarea id="answer" placeholder="Enter the correct answer" className="min-h-[120px]" />
-                </div>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="text"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Question Text</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="difficulty">Difficulty</Label>
-                    <Select defaultValue="medium">
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select difficulty" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="easy">Easy</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="hard">Hard</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+            <FormField
+              control={form.control}
+              name="imageUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Image URL (Optional)</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="url" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                  <div className="space-y-2">
-                    <Label htmlFor="status">Status</Label>
-                    <Select defaultValue="inactive">
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+            <div className="space-y-4">
+              <h3 className="font-medium">Answer Options</h3>
+              {form.watch("answerOptions").map((_, index) => (
+                <div key={index} className="flex gap-4">
+                  <FormField
+                    control={form.control}
+                    name={`answerOptions.${index}.text`}
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder={`Option ${index + 1}`}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`answerOptions.${index}.isCorrect`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <input
+                            type="radio"
+                            checked={field.value}
+                            onChange={() => {
+                              // Uncheck all other options
+                              form.setValue(
+                                "answerOptions",
+                                form
+                                  .getValues("answerOptions")
+                                  .map((option, i) => ({
+                                    ...option,
+                                    isCorrect: i === index,
+                                  }))
+                              );
+                            }}
+                            className="h-4 w-4 text-[#1045A1]"
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
                 </div>
-              </div>
-
-              {/* Right Column - Image Upload and Category */}
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <Label>Image upload</Label>
-                  <div className="border-2 border-dashed rounded-lg p-8">
-                    <div className="flex flex-col items-center justify-center gap-4">
-                      <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
-                        <Upload className="w-6 h-6 text-gray-500" />
-                      </div>
-                      <div className="text-center">
-                        <h3 className="font-semibold">Add question image</h3>
-                        <p className="text-sm text-gray-500">Click here to upload an image</p>
-                      </div>
-                      <Button variant="secondary" size="sm" className="bg-[#7C3AED] text-white hover:bg-[#6D28D9]">
-                        <Upload className="w-4 h-4 mr-2" />
-                        Upload
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Select defaultValue="braking">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="braking">Braking System</SelectItem>
-                      <SelectItem value="tire">Tire Mechanics</SelectItem>
-                      <SelectItem value="signs">Road Signs</SelectItem>
-                      <SelectItem value="rules">Traffic Rules</SelectItem>
-                      <SelectItem value="maintenance">Vehicle Maintenance</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="questionId">Question ID</Label>
-                  <Input id="questionId" placeholder="Enter question ID" defaultValue="Q1235" disabled />
-                  <p className="text-xs text-gray-500">Auto-generated question ID</p>
-                </div>
-              </div>
+              ))}
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="difficulty"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Difficulty</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select difficulty" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {difficulties.map((difficulty) => (
+                          <SelectItem key={difficulty} value={difficulty}>
+                            {difficulty}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {statuses.map((status) => (
+                          <SelectItem key={status} value={status}>
+                            {status}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category._id} value={category._id}>
+                            {category.categoryName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full bg-[#1045A1] hover:bg-[#0D3A8B] h-12"
+            >
+              Create Question
+            </Button>
           </form>
-        </div>
-        <div className="flex justify-end gap-4 px-6 py-4 border-t">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button type="submit" className="bg-[#1045A1] hover:bg-[#0D3A8B]">
-            Register
-          </Button>
-        </div>
+        </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-
