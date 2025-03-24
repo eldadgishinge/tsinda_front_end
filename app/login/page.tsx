@@ -1,22 +1,63 @@
-"use client"
+"use client";
 
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import { Eye, EyeOff } from "lucide-react"
-import Link from "next/link"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Image from "next/image";
+import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { loginSchema } from "@/lib/validations/auth";
+import type { z } from "zod";
+import axios from "@/lib/axios";
+
+type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [showPassword, setShowPassword] = useState(false)
+  const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    router.push("/dashboard")
-  }
+  const form = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      phoneNumber: "",
+      password: "",
+    },
+  });
+
+  const onSubmit = async (data: LoginForm) => {
+    try {
+      const response = await axios.post("/auth/login", data);
+
+      localStorage.setItem("token", response.data.token);
+      // Redirect based on role
+      if (response.data.user.role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
+    } catch (error: any) {
+      if (error.response?.data.userId) {
+        // User needs to verify email
+        localStorage.setItem("verifyUserId", error.response.data.userId);
+        router.push("/verify-email");
+        return;
+      }
+      console.error("Login error:", error);
+      // Handle error (show toast, etc)
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
@@ -34,56 +75,79 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Welcome Text */}
-          <h1 className="text-2xl font-bold text-center">Welcome back to Tsindacyane</h1>
+          <h1 className="text-2xl font-bold text-center">
+            Welcome back to Tsindacyane
+          </h1>
 
-          {/* Google Sign In */}
-          <button className="w-full flex items-center justify-center gap-2 border rounded-lg p-3 hover:bg-gray-50 transition-colors">
-            <Image src="/google.svg" alt="Google" width={20} height={20} className="w-5 h-5" />
-            Continue with Google
-          </button>
+          <Form {...form}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                form.handleSubmit(onSubmit)(e);
+              }}
+              className="space-y-4"
+            >
+              <FormField
+                control={form.control}
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone number</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">or</span>
-            </div>
-          </div>
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          type={showPassword ? "text" : "password"}
+                          className="pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-5 w-5" />
+                          ) : (
+                            <Eye className="h-5 w-5" />
+                          )}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm text-gray-600" htmlFor="phone">
-                Phone number
-              </label>
-              <Input id="phone" type="tel" placeholder="0781960827" className="w-full" />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm text-gray-600" htmlFor="password">
-                Password
-              </label>
-              <div className="relative">
-                <Input id="password" type={showPassword ? "text" : "password"} className="w-full pr-10" />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-                >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
-              </div>
-              <Link href="/forgot-password" className="text-sm text-[#1045A1] hover:underline block text-right">
-                Forgot my password
+              <Link
+                href="/forgot-password"
+                className="text-sm text-[#1045A1] hover:underline block text-right"
+              >
+                Forgot password?
               </Link>
-            </div>
 
-            <Button type="submit" className="w-full bg-[#1045A1] hover:bg-[#0D3A8B] text-white py-6">
-              Continue
-            </Button>
-          </form>
+              <Button
+                type="submit"
+                className="w-full bg-[#1045A1] hover:bg-[#0D3A8B] text-white py-6"
+                disabled={form.formState.isSubmitting}
+              >
+                Sign In
+              </Button>
+            </form>
+          </Form>
 
           <p className="text-center text-sm text-gray-600">
             Don't have an account?{" "}
@@ -91,14 +155,8 @@ export default function LoginPage() {
               Sign up
             </Link>
           </p>
-          <p className="text-center text-sm text-gray-600">
-            <Link href="/admin" className="text-[#1045A1] hover:underline">
-              Go to Admin
-            </Link>
-          </p>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-
