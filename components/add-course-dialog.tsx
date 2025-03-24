@@ -1,102 +1,255 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-import { Upload } from "lucide-react"
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  createCourseSchema,
+  type CreateCourseForm,
+} from "@/lib/validations/course";
+import axios from "@/lib/axios";
+
+interface Category {
+  _id: string;
+  categoryName: string;
+}
+
+interface Instructor {
+  _id: string;
+  name: string;
+  email: string;
+}
 
 interface AddCourseDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
+  categories: Category[];
+  instructors: Instructor[];
 }
 
-export function AddCourseDialog({ open, onOpenChange }: AddCourseDialogProps) {
+const languages = ["English", "French", "Kinyarwanda"] as const;
+
+export function AddCourseDialog({
+  open,
+  onOpenChange,
+  onSuccess,
+  categories,
+  instructors,
+}: AddCourseDialogProps) {
+  const form = useForm<CreateCourseForm>({
+    resolver: zodResolver(createCourseSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      language: undefined,
+      category: undefined,
+      instructor: undefined,
+      videoUrl: "",
+      documentUrl: "",
+    },
+  });
+
+  const onSubmit = async (data: CreateCourseForm) => {
+    try {
+      await axios.post("/courses", data);
+      form.reset();
+      onOpenChange(false);
+      onSuccess?.();
+    } catch (error) {
+      console.error("Create course error:", error);
+      // Handle error (show toast, etc)
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Add New Course</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">
+            Add New Course
+          </DialogTitle>
         </DialogHeader>
-        <form className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Left Column */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Course Title</Label>
-                <Input id="title" placeholder="Enter course title" />
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Course Description</Label>
-                <Textarea id="description" placeholder="Enter course description" className="min-h-[120px]" />
-              </div>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Course Title</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <div className="space-y-2">
-                <Label htmlFor="language">Language</Label>
-                <Select defaultValue="english">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select language" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="english">English</SelectItem>
-                    <SelectItem value="kinyarwanda">Kinyarwanda</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="language"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Language</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select language" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {languages.map((language) => (
+                          <SelectItem key={language} value={language}>
+                            {language}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category._id} value={category._id}>
+                            {category.categoryName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="instructor"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Instructor</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select instructor" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {instructors.map((instructor) => (
+                          <SelectItem
+                            key={instructor._id}
+                            value={instructor._id}
+                          >
+                            {instructor.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
-            {/* Right Column */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Course upload</Label>
-                <div className="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                    <Upload className="w-5 h-5 text-gray-500" />
-                  </div>
-                  <div className="text-center">
-                    <h3 className="font-semibold text-sm">Add course Video</h3>
-                    <p className="text-xs text-gray-500">Click here to add your course</p>
-                  </div>
-                  <Button variant="secondary" size="sm" className="bg-[#7C3AED] text-white hover:bg-[#6D28D9]">
-                    <Upload className="w-4 h-4 mr-2" />
-                    Upload
-                  </Button>
-                </div>
-              </div>
+            <FormField
+              control={form.control}
+              name="videoUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Video URL</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="url" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-              <div className="space-y-2">
-                <Label>Notes Upload</Label>
-                <div className="border-2 border-dashed rounded-lg p-4 flex flex-col items-center justify-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                    <Upload className="w-5 h-5 text-gray-500" />
-                  </div>
-                  <div className="text-center">
-                    <h3 className="font-semibold text-sm">Add Notes File</h3>
-                    <p className="text-xs text-gray-500">Click here to add your Notes</p>
-                  </div>
-                  <Button variant="secondary" size="sm" className="bg-[#7C3AED] text-white hover:bg-[#6D28D9]">
-                    <Upload className="w-4 h-4 mr-2" />
-                    Upload
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
+            <FormField
+              control={form.control}
+              name="documentUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Document URL</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="url" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+            <Button
+              type="submit"
+              className="w-full bg-[#1045A1] hover:bg-[#0D3A8B] h-12"
+            >
+              Create Course
             </Button>
-            <Button type="submit" className="bg-[#1045A1] hover:bg-[#0D3A8B]">
-              Register
-            </Button>
-          </div>
-        </form>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-
