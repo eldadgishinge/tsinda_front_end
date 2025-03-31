@@ -1,15 +1,16 @@
-"use client";
+"use client"
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 import {
   Form,
   FormControl,
@@ -17,39 +18,39 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
+} from "@/components/ui/form"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  createQuestionSchema,
-  type CreateQuestionForm,
-} from "@/lib/validations/question";
-import { useCreateQuestion } from "@/hooks/use-questions";
-import { useCategories } from "@/hooks/use-categories";
+} from "@/components/ui/select"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { createQuestionSchema, type CreateQuestionForm } from "@/lib/validations/question"
+import { useCreateQuestion } from "@/hooks/use-questions"
+import { useCategories } from "@/hooks/use-categories"
+import { FileUpload } from "@/components/ui/file-upload"
+import { useUploadQuestionImage } from "@/hooks/use-upload"
 
 interface AddQuestionDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
 export function AddQuestionDialog({
   open,
   onOpenChange,
 }: AddQuestionDialogProps) {
-  const { mutate: createQuestion, isPending } = useCreateQuestion();
-  const { data: categories } = useCategories();
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const { mutate: createQuestion, isPending: isCreating } = useCreateQuestion()
+  const { mutateAsync: uploadImage, isPending: isUploadingImage } = useUploadQuestionImage()
+  const { data: categories } = useCategories()
 
   const form = useForm<CreateQuestionForm>({
     resolver: zodResolver(createQuestionSchema),
     defaultValues: {
       text: "",
-      imageUrl: undefined,
       answerOptions: [
         { text: "", isCorrect: true },
         { text: "", isCorrect: false },
@@ -60,16 +61,33 @@ export function AddQuestionDialog({
       status: "Active",
       category: undefined,
     },
-  });
+  })
 
-  const onSubmit = (data: CreateQuestionForm) => {
-    createQuestion(data, {
-      onSuccess: () => {
-        form.reset();
-        onOpenChange(false);
-      },
-    });
-  };
+  const onSubmit = async (data: CreateQuestionForm) => {
+    try {
+      let imageUrl: string | undefined
+
+      if (imageFile) {
+        imageUrl = await uploadImage(imageFile)
+      }
+
+      createQuestion(
+        {
+          ...data,
+          imageUrl,
+        },
+        {
+          onSuccess: () => {
+            form.reset()
+            setImageFile(null)
+            onOpenChange(false)
+          },
+        }
+      )
+    } catch (error) {
+      console.error("Error creating question:", error)
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -96,22 +114,20 @@ export function AddQuestionDialog({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="imageUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Image URL (Optional)</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="url" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <FormItem>
+              <FormLabel>Question Image (Optional)</FormLabel>
+              <FileUpload
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                maxSize={5} // 5MB
+                onFileSelect={setImageFile}
+                onFileRemove={() => setImageFile(null)}
+                selectedFile={imageFile}
+                uploading={isUploadingImage}
+              />
+            </FormItem>
 
             <div className="space-y-4">
-              <h3 className="font-medium">Answer Options</h3>
+              <FormLabel>Answer Options</FormLabel>
               {form.watch("answerOptions").map((_, index) => (
                 <div key={index} className="flex gap-4">
                   <FormField
@@ -146,7 +162,7 @@ export function AddQuestionDialog({
                                     ...option,
                                     isCorrect: i === index,
                                   }))
-                              );
+                              )
                             }}
                             value={field.value ? "correct" : undefined}
                           >
@@ -244,7 +260,7 @@ export function AddQuestionDialog({
             <Button
               type="submit"
               className="w-full bg-[#1045A1] hover:bg-[#0D3A8B] h-12"
-              isLoading={isPending}
+              isLoading={isCreating || isUploadingImage}
             >
               Create Question
             </Button>
@@ -252,5 +268,5 @@ export function AddQuestionDialog({
         </Form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

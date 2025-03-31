@@ -13,21 +13,20 @@ export function useExams() {
   })
 }
 
-export function useCreateExam() {
+export function useCreateRandomExam() {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (data: {
       title: string
       description: string
-      duration: string
-      passingScore: string
-      questions: string[]
+      duration: number
+      passingScore: number
+      questionCount: number
       category: string
-      course?: string
-      status: "Draft" | "Published" | "Archived"
+      difficulty?: "Easy" | "Medium" | "Hard"
     }) => {
-      const response = await axios.post("/exams", data)
+      const response = await axios.post("/exams/random", data)
       return response.data
     },
     onSuccess: () => {
@@ -36,24 +35,6 @@ export function useCreateExam() {
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Failed to create exam")
-    },
-  })
-}
-
-export function useDeleteExam() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (examId: string) => {
-      const response = await axios.delete(`/exams/${examId}`)
-      return response.data
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["exams"] })
-      toast.success("Exam deleted successfully")
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to delete exam")
     },
   })
 }

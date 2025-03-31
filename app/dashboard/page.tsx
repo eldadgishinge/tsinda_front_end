@@ -1,30 +1,116 @@
-import Image from 'next/image'
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useUserEnrollments, getAllEnrollments } from "@/hooks/use-enrollments";
+import { useCourses } from "@/hooks/use-courses";
 
 export default function DashboardPage() {
+  const { data: userEnrollments, isLoading: isLoadingUserEnrollments } =
+    useUserEnrollments();
+  const { data: allEnrollments, isLoading: isLoadingAllEnrollments } =
+    getAllEnrollments();
+  const { data: courses, isLoading: isLoadingCourses } = useCourses();
+
+  // Calculate progress
+  const completedCourses =
+    userEnrollments?.filter((enrollment) => enrollment.completedAt).length || 0;
+  const progressPercentage = Math.round((completedCourses / 20) * 100); // 20 recommended courses
+
+  // Get active enrollments (not completed)
+  const activeEnrollments =
+    userEnrollments
+      ?.filter(
+        (enrollment) =>
+          !enrollment.completedAt && enrollment.status === "active"
+      )
+      .slice(0, 3) || [];
+
+  // Get recommended courses (first 2)
+  const recommendedCourses = courses?.slice(0, 2) || [];
+
+  // Get number of students learning this week
+  const studentsLearningThisWeek = allEnrollments?.length || 0;
+
   return (
     <div className="space-y-8">
       {/* Continue Learning Section */}
       <Card>
         <CardContent className="p-6">
           <div className="space-y-4">
-            <div className="text-green-500 font-medium">• CONTINUE LEARNING</div>
-            <h1 className="text-2xl font-bold">You don't have any active Lessons</h1>
-            <p className="text-gray-600">Select a Lessons and start improving your skills</p>
-            
+            <div className="text-green-500 font-medium">
+              • CONTINUE LEARNING
+            </div>
+            {activeEnrollments.length > 0 ? (
+              <>
+                <h1 className="text-2xl font-bold">
+                  Continue where you left off
+                </h1>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {activeEnrollments.map((enrollment) => (
+                    <Link
+                      key={enrollment._id}
+                      href={`/dashboard/lessons/${enrollment.course._id}`}
+                    >
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="aspect-video bg-gray-100 rounded-lg mb-4">
+                            {enrollment.course.videoUrl ? (
+                              <video
+                                src={enrollment.course.videoUrl}
+                                className="w-full h-full object-cover rounded-lg"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                No preview available
+                              </div>
+                            )}
+                          </div>
+                          <h3 className="font-semibold mb-2">
+                            {enrollment.course.title}
+                          </h3>
+                          <div className="flex items-center justify-between text-sm text-gray-500">
+                            <span>{enrollment.course.language}</span>
+                            <span>{enrollment.progress}% completed</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <h1 className="text-2xl font-bold">
+                  You don't have any active Lessons
+                </h1>
+                <p className="text-gray-600">
+                  Select a Lesson and start improving your skills
+                </p>
+              </>
+            )}
+
             <div className="flex items-center justify-between">
-              <Button className="bg-[#1045A1] hover:bg-[#0D3A8B]">
-                Explore Courses
-              </Button>
+              <Link href="/dashboard/lessons">
+                <Button className="bg-[#1045A1] hover:bg-[#0D3A8B]">
+                  Explore Courses
+                </Button>
+              </Link>
 
               <div className="flex items-center space-x-2">
                 <div className="flex -space-x-2">
                   {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-200" />
+                    <div
+                      key={i}
+                      className="w-8 h-8 rounded-full border-2 border-white bg-gray-200"
+                    />
                   ))}
                 </div>
-                <span className="text-gray-600">1583 learning this week</span>
+                <span className="text-gray-600">
+                  {studentsLearningThisWeek} learning this week
+                </span>
               </div>
             </div>
           </div>
@@ -53,21 +139,22 @@ export default function DashboardPage() {
                   fill="none"
                   stroke="#3B82F6"
                   strokeWidth="3"
-                  strokeDasharray="10, 100"
+                  strokeDasharray={`${progressPercentage}, 100`}
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center text-sm font-medium">
-                10%
+                {progressPercentage}%
               </div>
             </div>
           </div>
           <p className="text-gray-600">
-            Here, you'll see your learning progress to determine when you're ready for the exam.
+            Here, you'll see your learning progress to determine when you're
+            ready for the exam.
           </p>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>Lessons</span>
-              <span className="text-[#1045A1]">4/20</span>
+              <span className="text-[#1045A1]">{completedCourses}/20</span>
             </div>
             <div className="flex justify-between text-sm">
               <span>Questions done</span>
@@ -81,48 +168,34 @@ export default function DashboardPage() {
       <div className="space-y-4">
         <h2 className="text-2xl font-bold">Recommended Lessons for you.</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="aspect-video bg-gray-100 rounded-lg mb-4">
-                <img
-                  src="/placeholder.svg"
-                  alt="Right-of-way rules"
-                  className="w-full h-full object-cover rounded-lg"
-                />
-              </div>
-              <h3 className="font-semibold mb-2">Right-of-way rules</h3>
-              <p className="text-gray-600 text-sm mb-4">
-                Legal maximum and minimum speeds based on road type and conditions.
-              </p>
-              <div className="flex items-center justify-between text-sm text-gray-500">
-                <span>Advanced</span>
-                <span>1 hour</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6 relative">
-              <div className="absolute top-4 right-4 bg-gray-100 px-2 py-1 rounded text-xs font-medium">
-                NEW
-              </div>
-              <div className="aspect-video bg-gray-100 rounded-lg mb-4">
-                <img
-                  src="/placeholder.svg"
-                  alt="Practical Driving Lessons"
-                  className="w-full h-full object-cover rounded-lg"
-                />
-              </div>
-              <h3 className="font-semibold mb-2">Practical Driving Lessons</h3>
-              <p className="text-gray-600 text-sm mb-4">
-                Legal maximum and minimum speeds based on road type and conditions.
-              </p>
-              <div className="flex items-center justify-between text-sm text-gray-500">
-                <span>Advanced</span>
-                <span>1 hour</span>
-              </div>
-            </CardContent>
-          </Card>
+          {recommendedCourses.map((course) => (
+            <Link key={course._id} href={`/dashboard/lessons/${course._id}`}>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="aspect-video bg-gray-100 rounded-lg mb-4">
+                    {course.videoUrl ? (
+                      <video
+                        src={course.videoUrl}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        No preview available
+                      </div>
+                    )}
+                  </div>
+                  <h3 className="font-semibold mb-2">{course.title}</h3>
+                  <p className="text-gray-600 text-sm mb-4">
+                    {course.description}
+                  </p>
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <span>{course.category?.categoryName}</span>
+                    <span>1 hour</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
         </div>
       </div>
 
@@ -133,15 +206,18 @@ export default function DashboardPage() {
             <div className="space-y-2">
               <h3 className="text-gray-600">Not sure where to start?</h3>
               <h2 className="text-2xl font-bold">Take the tsindacyane Exam</h2>
-              <p className="text-gray-600">Complete our short quiz and start your learning progress.</p>
+              <p className="text-gray-600">
+                Complete our short quiz and start your learning progress.
+              </p>
             </div>
-            <Button className="bg-[#1045A1] hover:bg-[#0D3A8B]">
-              Take our quiz
-            </Button>
+            <Link href="/dashboard/assessments">
+              <Button className="bg-[#1045A1] hover:bg-[#0D3A8B]">
+                Take our quiz
+              </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-

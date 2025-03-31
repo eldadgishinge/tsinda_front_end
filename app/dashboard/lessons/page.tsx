@@ -1,123 +1,169 @@
-'use client'
+"use client";
 
-import { Card, CardContent } from "@/components/ui/card"
-import { Lock } from 'lucide-react'
-import Image from "next/image"
-import Link from "next/link"
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Lock } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useLanguage } from "@/contexts/language-context";
+import { useCourses } from "@/hooks/use-courses";
+import { useUserEnrollments } from "@/hooks/use-enrollments";
 
-const lessons = [
-  {
-    id: 1,
-    title: "Practical Driving Lessons",
-    description: "Legal maximum and minimum speeds based on road type and conditions.",
-    image: "/placeholder.svg",
-    level: "Advanced",
-    duration: "1 hour",
-    locked: false,
-  },
-  {
-    id: 2,
-    title: "Right-of-way rules",
-    description: "Legal maximum and minimum speeds based on road type and conditions.",
-    image: "/placeholder.svg",
-    level: "Advanced",
-    duration: "1 hour",
-    locked: true,
-  },
-  {
-    id: 3,
-    title: "Practical Driving Lessons",
-    description: "Legal maximum and minimum speeds based on road type and conditions.",
-    image: "/placeholder.svg",
-    level: "Advanced",
-    duration: "1 hour",
-    locked: true,
-  },
-  {
-    id: 4,
-    title: "Vehicle Maintenance Basics",
-    description: "Legal maximum and minimum speeds based on road type and conditions.",
-    image: "/placeholder.svg",
-    level: "Advanced",
-    duration: "1 hour",
-    locked: true,
-  },
-  {
-    id: 5,
-    title: "Right-of-way rules",
-    description: "Legal maximum and minimum speeds based on road type and conditions.",
-    image: "/placeholder.svg",
-    level: "Advanced",
-    duration: "1 hour",
-    locked: true,
-  },
-  {
-    id: 6,
-    title: "Vehicle Maintenance Basics",
-    description: "Legal maximum and minimum speeds based on road type and conditions.",
-    image: "/placeholder.svg",
-    level: "Advanced",
-    duration: "1 hour",
-    locked: true,
-  },
-]
+type EnrollmentStatus = "all" | "completed" | "in-progress" | "not-started";
 
 export default function LessonsPage() {
+  const [status, setStatus] = useState<EnrollmentStatus>("all");
+  const { language, setLanguage } = useLanguage();
+  const { data: courses, isLoading: isLoadingCourses } = useCourses();
+  const { data: enrollments, isLoading: isLoadingEnrollments } =
+    useUserEnrollments();
+
+  // Filter courses by current language
+  const filteredCourses =
+    courses?.filter(
+      (course) =>
+        course.language === (language === "en" ? "English" : "Kinyarwanda")
+    ) || [];
+
+  // Get enrollment status for each course
+  const coursesWithStatus = filteredCourses.map((course) => {
+    const enrollment = enrollments?.find((e) => e.course._id === course._id);
+    let courseStatus: EnrollmentStatus = "not-started";
+
+    if (enrollment) {
+      if (enrollment.completedAt) {
+        courseStatus = "completed";
+      } else if (enrollment.progress > 0) {
+        courseStatus = "in-progress";
+      }
+    }
+
+    return {
+      ...course,
+      status: courseStatus,
+      progress: enrollment?.progress || 0,
+    };
+  });
+
+  // Filter by status if not "all"
+  const displayedCourses =
+    status === "all"
+      ? coursesWithStatus
+      : coursesWithStatus.filter((course) => course.status === status);
+
+  if (isLoadingCourses || isLoadingEnrollments) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-2" />
+          <div className="h-6 w-96 bg-gray-200 rounded animate-pulse" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <div className="aspect-video bg-gray-200 rounded-lg mb-4 animate-pulse" />
+                <div className="h-6 w-3/4 bg-gray-200 rounded animate-pulse mb-2" />
+                <div className="h-4 w-full bg-gray-200 rounded animate-pulse mb-4" />
+                <div className="flex items-center justify-between">
+                  <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
+                  <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold mb-2">Lessons</h1>
         <p className="text-gray-600">
-          Improve your driving skills through interactive, hands on professional courses.
+          Improve your driving skills through interactive, hands on professional
+          courses.
         </p>
       </div>
 
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div className="flex gap-2">
-          <button className="px-4 py-2 bg-[#E6EDF7] text-[#1045A1] rounded-lg font-medium">
+          <button
+            className={`px-4 py-2 rounded-lg font-medium ${
+              language === "en"
+                ? "bg-[#E6EDF7] text-[#1045A1]"
+                : "hover:bg-gray-50"
+            }`}
+            onClick={() => setLanguage("en")}
+          >
             English
           </button>
-          <button className="px-4 py-2 hover:bg-gray-50 rounded-lg">
+          <button
+            className={`px-4 py-2 rounded-lg font-medium ${
+              language === "rw"
+                ? "bg-[#E6EDF7] text-[#1045A1]"
+                : "hover:bg-gray-50"
+            }`}
+            onClick={() => setLanguage("rw")}
+          >
             Kinyarwanda
           </button>
         </div>
 
         <div className="flex items-center gap-2">
           <span className="text-gray-600">Status</span>
-          <select className="border rounded-lg px-4 py-2 bg-white">
-            <option>All</option>
-            <option>Completed</option>
-            <option>In Progress</option>
-            <option>Not Started</option>
+          <select
+            className="border rounded-lg px-4 py-2 bg-white"
+            value={status}
+            onChange={(e) => setStatus(e.target.value as EnrollmentStatus)}
+          >
+            <option value="all">All</option>
+            <option value="completed">Completed</option>
+            <option value="in-progress">In Progress</option>
+            <option value="not-started">Not Started</option>
           </select>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {lessons.map((lesson) => (
-          <Card key={lesson.id} className="overflow-hidden">
-            <Link href={`/dashboard/lessons/${lesson.id}`}>
+        {displayedCourses.map((course) => (
+          <Card key={course._id}>
+            <Link href={`/dashboard/lessons/${course._id}`}>
               <div className="relative aspect-[2/1] bg-gray-100">
-                <Image
-                  src={lesson.image || "/placeholder.svg"}
-                  alt={lesson.title}
-                  fill
-                  className="object-cover"
-                />
-                {lesson.locked && (
+                {course.videoUrl ? (
+                  <video
+                    src={course.videoUrl}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Image
+                    src="/placeholder.svg"
+                    alt={course.title}
+                    fill
+                    className="object-cover"
+                  />
+                )}
+                {!course.isPublished && (
                   <div className="absolute top-4 right-4">
                     <Lock className="w-5 h-5 text-gray-600" />
                   </div>
                 )}
+                {course.status !== "not-started" && (
+                  <div className="absolute bottom-4 right-4 bg-white rounded-full px-3 py-1 text-sm font-medium">
+                    {course.progress}% Complete
+                  </div>
+                )}
               </div>
               <CardContent className="p-6">
-                <h3 className="font-semibold mb-2">{lesson.title}</h3>
+                <h3 className="font-semibold mb-2">{course.title}</h3>
                 <p className="text-gray-600 text-sm mb-4">
-                  {lesson.description}
+                  {course.description}
                 </p>
                 <div className="flex items-center justify-between text-sm text-gray-500">
-                  <span>{lesson.level}</span>
-                  <span>{lesson.duration}</span>
+                  <span>{course.category?.categoryName}</span>
+                  <span>{course?.language}</span>
                 </div>
               </CardContent>
             </Link>
@@ -125,6 +171,5 @@ export default function LessonsPage() {
         ))}
       </div>
     </div>
-  )
+  );
 }
-

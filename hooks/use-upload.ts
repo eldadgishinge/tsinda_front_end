@@ -39,3 +39,22 @@ export function useUploadDocument() {
     },
   });
 }
+
+export function useUploadQuestionImage() {
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const response = await axios.post("/upload/question-image", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data.imageUrl as string;
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to upload image");
+    },
+  });
+}
