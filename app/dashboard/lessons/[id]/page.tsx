@@ -157,7 +157,7 @@ export default function LessonDetailsPage() {
         ) : (
           <div className="aspect-video bg-gray-100 flex items-center justify-center">
             <div className="text-center">
-              <h2 className="text-xl font-semibold mb-4">Enroll to Watch</h2>
+              <h2 className="text-xl font-semibold mb-4">Enroll into course</h2>
               <Button
                 className="bg-[#1045A1] hover:bg-[#0D3A8B]"
                 onClick={() => setShowEnrollDialog(true)}
