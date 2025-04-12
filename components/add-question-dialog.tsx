@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
@@ -18,34 +18,38 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { createQuestionSchema, type CreateQuestionForm } from "@/lib/validations/question"
-import { useCreateQuestion } from "@/hooks/use-questions"
-import { useCategories } from "@/hooks/use-categories"
-import { FileUpload } from "@/components/ui/file-upload"
-import { useUploadQuestionImage } from "@/hooks/use-upload"
+} from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  createQuestionSchema,
+  type CreateQuestionForm,
+} from "@/lib/validations/question";
+import { useCreateQuestion } from "@/hooks/use-questions";
+import { useCategories } from "@/hooks/use-categories";
+import { FileUpload } from "@/components/ui/file-upload";
+import { useUploadQuestionImage } from "@/hooks/use-upload";
 
 interface AddQuestionDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function AddQuestionDialog({
   open,
   onOpenChange,
 }: AddQuestionDialogProps) {
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const { mutate: createQuestion, isPending: isCreating } = useCreateQuestion()
-  const { mutateAsync: uploadImage, isPending: isUploadingImage } = useUploadQuestionImage()
-  const { data: categories } = useCategories()
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const { mutate: createQuestion, isPending: isCreating } = useCreateQuestion();
+  const { mutateAsync: uploadImage, isPending: isUploadingImage } =
+    useUploadQuestionImage();
+  const { data: categories } = useCategories();
 
   const form = useForm<CreateQuestionForm>({
     resolver: zodResolver(createQuestionSchema),
@@ -61,14 +65,14 @@ export function AddQuestionDialog({
       status: "Active",
       category: undefined,
     },
-  })
+  });
 
   const onSubmit = async (data: CreateQuestionForm) => {
     try {
-      let imageUrl: string | undefined
+      let imageUrl: string | undefined;
 
       if (imageFile) {
-        imageUrl = await uploadImage(imageFile)
+        imageUrl = await uploadImage(imageFile);
       }
 
       createQuestion(
@@ -78,16 +82,16 @@ export function AddQuestionDialog({
         },
         {
           onSuccess: () => {
-            form.reset()
-            setImageFile(null)
-            onOpenChange(false)
+            form.reset();
+            setImageFile(null);
+            onOpenChange(false);
           },
         }
-      )
+      );
     } catch (error) {
-      console.error("Error creating question:", error)
+      console.error("Error creating question:", error);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -162,7 +166,7 @@ export function AddQuestionDialog({
                                     ...option,
                                     isCorrect: i === index,
                                   }))
-                              )
+                              );
                             }}
                             value={field.value ? "correct" : undefined}
                           >
@@ -195,7 +199,7 @@ export function AddQuestionDialog({
                       <SelectContent>
                         <SelectItem value="Easy">Easy</SelectItem>
                         <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="Hard">Hard</SelectItem>
+                        <SelectItem value="Difficult">Hard</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -268,5 +272,5 @@ export function AddQuestionDialog({
         </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

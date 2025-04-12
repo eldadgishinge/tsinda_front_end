@@ -1,163 +1,229 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { X } from "lucide-react";
-import { useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { ExitAssessmentDialog } from "@/components/exit-assessment-dialog";
-
-// Sample questions data
-const questions = [
-  {
-    id: 1,
-    question: "What is the main purpose of ABS (Anti-lock Braking System)?",
-    hasImage: true,
-    options: [
-      "To reduce tire wear.",
-      "To prevent the wheels from locking during braking.",
-      "To enhance fuel efficiency.",
-      "To provide smoother acceleration.",
-    ],
-  },
-  // Add more questions as needed
-];
+import { useState, useEffect, useCallback } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { useQuery } from "@tanstack/react-query"
+import axios from "@/lib/axios"
+import { Loader2 } from "lucide-react"
 
 export default function AssessmentStartPage() {
-  // const searchParams = useSearchParams();
-  const [showExitDialog, setShowExitDialog] = useState(false);
-  const totalQuestions = 10; //Number.parseInt(searchParams.get("count") || "25");
-  const [currentQuestion, setCurrentQuestion] = useState(2); // 3rd question (0-based index)
-  const [selectedAnswer, setSelectedAnswer] = useState<string>("");
-  const [timeLeft, setTimeLeft] = useState(totalQuestions * 60); // 1 minute per question
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const examId = searchParams.get("id")
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [hasStarted, setHasStarted] = useState(false)
+  const [attemptId, setAttemptId] = useState<string>()
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+  const { data: exam, isLoading } = useQuery({
+    queryKey: ["exam", examId],
+    queryFn: async () => {
+      const response = await axios.get(`/exams/${examId}`)
+      return response.data
+    },
+    enabled: !!examId,
+  })
 
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${String(minutes).padStart(2, "0")}:${String(
-      remainingSeconds
-    ).padStart(2, "0")}`;
-  };
+  const startExam = async () => {
+    try {
+      const response = await axios.post("/exam-attempts/start", {
+        examId,
+      })
+      setAttemptId(response.data._id)
 
-  const progress = ((currentQuestion + 1) / totalQuestions) * 100;
-
-  const handleNext = () => {
-    if (selectedAnswer) {
-      setCurrentQuestion((prev) => Math.min(totalQuestions - 1, prev + 1));
-      setSelectedAnswer(""); // Reset selected answer for the next question
+      // Request fullscreen
+      const element = document.documentElement
+      if (element.requestFullscreen) {
+        await element.requestFullscreen()
+      }
+      setIsFullscreen(true)
+      setHasStarted(true)
+    } catch (error) {
+      console.error("Failed to start exam:", error)
     }
-  };
+  }
+
+  const submitExam = useCallback(async () => {
+    if (!attemptId) return
+    try {
+      await axios.put(`/exam-attempts/${attemptId}/complete`)
+      router.push(`/dashboard/assessments/completed/${attemptId}`)
+    } catch (error) {
+      console.error("Failed to submit exam:", error)
+    }
+  }, [attemptId, router])
+
+  // Handle fullscreen change
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      if (document.fullscreenElement) {
+        setIsFullscreen(true)
+      } else if (hasStarted) {
+        // Only submit if exam has started and user exits fullscreen
+        submitExam()
+      }
+    }
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange)
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange)
+    }
+  }, [hasStarted, submitExam])
+
+  // Handle visibility change (tab change)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && hasStarted) {
+        submitExam()
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+    }
+  }, [hasStarted, submitExam])
+
+  // Submit on unmount if exam is still ongoing
+  useEffect(() => {
+    return () => {
+      if (hasStarted && !isFullscreen) {
+        submitExam()
+      }
+    }
+  }, [hasStarted, isFullscreen, submitExam])
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
+
+  if (!exam) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <p className="text-gray-500">Exam not found</p>
+      </div>
+    )
+  }
+
+  if (hasStarted) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-2xl font-bold">{exam.title}</h1>
+          <div className="text-sm text-gray-500">
+            Time Remaining: {exam.duration} minutes
+          </div>
+        </div>
+
+        <div className="space-y-8">
+          {exam.questions.map((question: any, index: number) => (
+            <Card key={question._id} className="p-6">
+              <h3 className="text-lg font-medium mb-4">
+                {index + 1}. {question.text}
+              </h3>
+              {question.imageUrl && (
+                <img
+                  src={question.imageUrl}
+                  alt="Question"
+                  className="mb-4 rounded-lg"
+                />
+              )}
+              <div className="space-y-2">
+                {question.answerOptions.map((option: any, optionIndex: number) => (
+                  <label
+                    key={optionIndex}
+                    className="flex items-center space-x-3 p-3 rounded-lg border hover:border-[#1045A1] cursor-pointer"
+                  >
+                    <input
+                      type="radio"
+                      name={`question-${question._id}`}
+                      value={optionIndex}
+                      className="text-[#1045A1]"
+                      onChange={() => {
+                        // Submit answer
+                        axios.post("/exam-attempts/submit-answer", {
+                          attemptId,
+                          questionId: question._id,
+                          selectedOption: optionIndex,
+                        })
+                      }}
+                    />
+                    <span>{option.text}</span>
+                  </label>
+                ))}
+              </div>
+            </Card>
+          ))}
+
+          <Button
+            className="w-full bg-[#1045A1] hover:bg-[#0D3A8B]"
+            onClick={submitExam}
+          >
+            Submit Exam
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white border-b">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="flex items-center justify-between py-4">
-            <button
-              onClick={() => setShowExitDialog(true)}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
-            >
-              <X className="h-5 w-5" />
-              <span className="font-medium">CLOSE</span>
-            </button>
-            <div className="text-sm font-medium">
-              {currentQuestion + 1}/{totalQuestions}
-            </div>
+    <div className="max-w-2xl mx-auto p-6">
+      <Card className="p-8">
+        <h1 className="text-2xl font-bold mb-6">{exam.title}</h1>
+        
+        <div className="space-y-4 mb-8">
+          <div className="flex justify-between py-2 border-b">
+            <span className="text-gray-600">Number of Questions</span>
+            <span className="font-medium">{exam.questions.length}</span>
           </div>
-          <div className="pb-4">
-            <Progress value={progress} className="h-2" />
+          
+          <div className="flex justify-between py-2 border-b">
+            <span className="text-gray-600">Duration</span>
+            <span className="font-medium">{exam.duration} minutes</span>
+          </div>
+          
+          <div className="flex justify-between py-2 border-b">
+            <span className="text-gray-600">Passing Score</span>
+            <span className="font-medium">{exam.passingScore}%</span>
           </div>
         </div>
-      </div>
 
-      {/* Question Content */}
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Left Column: Question */}
-          <div className="space-y-8">
-            <h1 className="text-2xl font-bold">
-              3. What is the main purpose of ABS (Anti-lock Braking System)?
-            </h1>
-            {questions[0].hasImage && (
-              <div className="w-full aspect-square relative rounded-3xl overflow-hidden bg-[#FBF7F0] p-12">
-                <img
-                  src="/placeholder.svg"
-                  alt="Question illustration"
-                  className="w-full h-full object-contain"
-                />
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-yellow-800">
+                Important Information
+              </h3>
+              <div className="mt-2 text-sm text-yellow-700">
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>The exam will open in full screen mode</li>
+                  <li>Exiting full screen will submit your exam automatically</li>
+                  <li>Changing tabs or applications will submit your exam</li>
+                  <li>Make sure you have a stable internet connection</li>
+                  <li>Ensure your device is fully charged or plugged in</li>
+                </ul>
               </div>
-            )}
-          </div>
-
-          {/* Right Column: Options */}
-          <div>
-            <RadioGroup
-              value={selectedAnswer}
-              onValueChange={setSelectedAnswer}
-              className="space-y-4"
-            >
-              {questions[0].options.map((option, index) => (
-                <div
-                  key={index}
-                  className="flex items-center space-x-3 rounded-lg border p-4 cursor-pointer hover:border-[#1045A1] transition-colors"
-                >
-                  <RadioGroupItem value={option} id={`option-${index}`} />
-                  <Label
-                    htmlFor={`option-${index}`}
-                    className="flex-grow cursor-pointer text-base text-gray-600"
-                  >
-                    {option}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t">
-        <div className="max-w-4xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Button
-              variant="outline"
-              className="w-32 h-12"
-              onClick={() =>
-                setCurrentQuestion((prev) => Math.max(0, prev - 1))
-              }
-            >
-              BACK
-            </Button>
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-full border-2 border-gray-300 border-t-[#1045A1] animate-spin" />
-              <span className="font-medium">{formatTime(timeLeft)}</span>
             </div>
-            <Button
-              className="w-32 h-12 bg-[#1045A1] hover:bg-[#0D3A8B] disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={handleNext}
-              disabled={!selectedAnswer}
-            >
-              NEXT
-            </Button>
           </div>
         </div>
-      </div>
 
-      {/* Exit Confirmation Dialog */}
-      <ExitAssessmentDialog
-        open={showExitDialog}
-        onOpenChange={setShowExitDialog}
-      />
+        <Button
+          className="w-full bg-[#1045A1] hover:bg-[#0D3A8B]"
+          onClick={startExam}
+        >
+          Start Exam
+        </Button>
+      </Card>
     </div>
-  );
+  )
 }

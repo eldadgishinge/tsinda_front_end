@@ -58,5 +58,5 @@ interface Question {
   _id: string;
   text: string;
   imageUrl?: string;
-  difficulty: "Easy" | "Medium" | "Hard";
+  difficulty: "Easy" | "Medium" | "Difficult";
 }

@@ -12,7 +12,7 @@ export const createQuestionSchema = z.object({
       })
     )
     .length(4, "Question must have exactly 4 answer options"),
-  difficulty: z.enum(["Easy", "Medium", "Hard"], {
+  difficulty: z.enum(["Easy", "Medium", "Difficult"], {
     required_error: "Please select difficulty level",
   }),
   status: z.enum(["Active", "Inactive"], {
@@ -33,7 +33,7 @@ export interface Question {
     text: string;
     isCorrect: boolean;
   }[];
-  difficulty: "Easy" | "Medium" | "Hard";
+  difficulty: "Easy" | "Medium" | "Difficult";
   status: "Active" | "Inactive";
   category: {
     _id: string;
