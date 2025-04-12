@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { FileUpload } from "@/components/ui/file-upload"
+import * as React from "react";
+import { FileUpload } from "@/components/ui/file-upload";
 
 interface VideoUploadProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  onFileSelect: (file: File) => void
-  onFileRemove?: () => void
-  selectedFile?: File | null
-  maxSize?: number // in MB
-  className?: string
-  uploading?: boolean
-  uploadProgress?: number
+  onFileSelect: (file: File) => void;
+  onFileRemove?: () => void;
+  selectedFile?: File | null;
+  maxSize?: number; // in MB
+  className?: string;
+  uploading?: boolean;
+  uploadProgress?: number;
 }
 
 export function VideoUpload({
@@ -25,7 +25,7 @@ export function VideoUpload({
 }: VideoUploadProps) {
   return (
     <FileUpload
-      accept="video/mp4,video/webm,video/ogg"
+      accept="video/mp4,video/webm,video/ogg,video/mov"
       maxSize={maxSize}
       onFileSelect={onFileSelect}
       onFileRemove={onFileRemove}
@@ -35,5 +35,5 @@ export function VideoUpload({
       uploadProgress={uploadProgress}
       {...props}
     />
-  )
+  );
 }

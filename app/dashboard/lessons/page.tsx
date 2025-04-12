@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Lock } from "lucide-react";
 import Image from "next/image";
@@ -132,19 +133,12 @@ export default function LessonsPage() {
           <Card key={course._id}>
             <Link href={`/dashboard/lessons/${course._id}`}>
               <div className="relative aspect-[2/1] bg-gray-100">
-                {course.videoUrl ? (
-                  <video
-                    src={course.videoUrl}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <Image
-                    src="/placeholder.svg"
-                    alt={course.title}
-                    fill
-                    className="object-cover"
-                  />
-                )}
+                <Image
+                  src={course.thumbnailUrl}
+                  alt={course.title}
+                  fill
+                  className="object-cover rounded-t-lg"
+                />
                 {!course.isPublished && (
                   <div className="absolute top-4 right-4">
                     <Lock className="w-5 h-5 text-gray-600" />

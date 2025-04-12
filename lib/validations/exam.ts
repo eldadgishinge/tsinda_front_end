@@ -3,7 +3,6 @@ import * as z from "zod";
 export const createExamSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
   description: z.string().min(10, "Description must be at least 10 characters"),
-  // duration: z.number().min(1, "Duration must be at least 1 minute"),
   duration: z.string().refine(
     (value) => {
       const duration = parseInt(value);
@@ -13,7 +12,6 @@ export const createExamSchema = z.object({
       message: "Duration must be at least 1 minute",
     }
   ),
-  // passingScore: z.number().min(0, "Passing score must be at least 0").max(100, "Passing score cannot exceed 100"),
   passingScore: z.string().refine(
     (value) => {
       const score = parseInt(value);
@@ -28,6 +26,9 @@ export const createExamSchema = z.object({
     required_error: "Please select a category",
   }),
   course: z.string().optional(),
+  language: z.enum(["English", "French", "Kinyarwanda"], {
+    required_error: "Please select language",
+  }),
   status: z.enum(["Draft", "Published", "Archived"], {
     required_error: "Please select status",
   }),
@@ -50,6 +51,7 @@ export interface Exam {
     _id: string;
     title: string;
   };
+  language: "English" | "French" | "Kinyarwanda";
   status: "Draft" | "Published" | "Archived";
   createdAt: string;
 }

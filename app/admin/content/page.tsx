@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AddCourseDialog } from "@/components/add-course-dialog";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useCourses, useDeleteCourse } from "@/hooks/use-courses";
 import { useCategories } from "@/hooks/use-categories";
 import { useUsers } from "@/hooks/use-users";
@@ -51,6 +52,14 @@ export default function ContentManagementPage() {
               <Card key={course._id}>
                 <CardContent className="p-6">
                   <div className="space-y-4">
+                    <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                      <Image
+                        src={course.thumbnailUrl}
+                        alt={course.title}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
                     <div className="flex justify-between items-start">
                       <h3 className="font-semibold">{course.title}</h3>
                       <div className="flex gap-2">
@@ -105,8 +114,6 @@ export default function ContentManagementPage() {
       <AddCourseDialog
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
-        // categories={categories || []}
-        // instructors={instructors || []}
       />
     </div>
   );

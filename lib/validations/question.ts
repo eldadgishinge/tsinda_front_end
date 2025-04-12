@@ -3,7 +3,6 @@ import * as z from "zod";
 export const createQuestionSchema = z.object({
   text: z.string().min(5, "Question text must be at least 5 characters"),
   imageUrl: z.string().optional(),
-  //.url("Please enter a valid image URL").optional(),
   answerOptions: z
     .array(
       z.object({

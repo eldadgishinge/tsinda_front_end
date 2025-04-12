@@ -12,8 +12,24 @@ export const createCourseSchema = z.object({
   instructor: z.string({
     required_error: "Please select an instructor",
   }),
-  videoUrl: z.string().url("Please enter a valid video URL").optional(),
-  documentUrl: z.string().url("Please enter a valid document URL").optional(),
+  thumbnail: z.any()
+    .refine((file) => file?.length > 0, "Thumbnail is required")
+    .refine(
+      (file) => file?.[0]?.size <= 5 * 1024 * 1024,
+      "Thumbnail must be less than 5MB"
+    ),
+  video: z.any()
+    .optional()
+    .refine(
+      (file) => !file || file?.[0]?.size <= 100 * 1024 * 1024,
+      "Video must be less than 100MB"
+    ),
+  document: z.any()
+    .optional()
+    .refine(
+      (file) => !file || file?.[0]?.size <= 10 * 1024 * 1024,
+      "Document must be less than 10MB"
+    ),
 })
 
 export type CreateCourseForm = z.infer<typeof createCourseSchema>
@@ -32,6 +48,7 @@ export interface Course {
     name: string
     email: string
   }
+  thumbnailUrl: string
   videoUrl?: string
   documentUrl?: string
   isPublished: boolean

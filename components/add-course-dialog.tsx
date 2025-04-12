@@ -35,7 +35,7 @@ import { useCreateCourse } from "@/hooks/use-courses";
 import { useCategories } from "@/hooks/use-categories";
 import { useUploadVideo, useUploadDocument } from "@/hooks/use-upload";
 import { VideoUpload } from "@/components/ui/video-upload";
-import { DocumentUpload } from "@/components/ui/document-upload";
+import { DocumentUpload, ImageUpload } from "@/components/ui/document-upload";
 import { useUsers } from "@/hooks/use-users";
 
 interface AddCourseDialogProps {
@@ -48,6 +48,7 @@ const languages = ["English", "French", "Kinyarwanda"] as const;
 export function AddCourseDialog({ open, onOpenChange }: AddCourseDialogProps) {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const { mutate: createCourse, isPending: isCreating } = useCreateCourse();
   const { mutateAsync: uploadVideo, isPending: isUploadingVideo } =
@@ -80,6 +81,10 @@ export function AddCourseDialog({ open, onOpenChange }: AddCourseDialogProps) {
       if (documentFile) {
         documentUrl = await uploadDocument(documentFile);
       }
+      if (imageFile) {
+        const imageUrl = await uploadVideo(imageFile);
+        data.thumbnail = imageUrl;
+      }
 
       createCourse(
         {
@@ -100,6 +105,8 @@ export function AddCourseDialog({ open, onOpenChange }: AddCourseDialogProps) {
       console.error("Error creating course:", error);
     }
   };
+
+  console.log("Form state:", form.formState);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -139,6 +146,17 @@ export function AddCourseDialog({ open, onOpenChange }: AddCourseDialogProps) {
                 </FormItem>
               )}
             />
+            {/* thumbnail */}
+            <FormItem>
+              <FormLabel>Thumbnail</FormLabel>
+              <ImageUpload
+                onFileSelect={setImageFile}
+                onFileRemove={() => setImageFile(null)}
+                selectedFile={imageFile}
+                uploading={isUploadingVideo}
+              />
+            </FormItem>
+            {/* end thumbnail */}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField

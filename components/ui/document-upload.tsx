@@ -1,16 +1,17 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { FileUpload } from "@/components/ui/file-upload"
+import * as React from "react";
+import { FileUpload } from "@/components/ui/file-upload";
 
-interface DocumentUploadProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  onFileSelect: (file: File) => void
-  onFileRemove?: () => void
-  selectedFile?: File | null
-  maxSize?: number // in MB
-  className?: string
-  uploading?: boolean
-  uploadProgress?: number
+interface DocumentUploadProps
+  extends React.InputHTMLAttributes<HTMLInputElement> {
+  onFileSelect: (file: File) => void;
+  onFileRemove?: () => void;
+  selectedFile?: File | null;
+  maxSize?: number; // in MB
+  className?: string;
+  uploading?: boolean;
+  uploadProgress?: number;
 }
 
 export function DocumentUpload({
@@ -35,5 +36,30 @@ export function DocumentUpload({
       uploadProgress={uploadProgress}
       {...props}
     />
-  )
+  );
+}
+
+export function ImageUpload({
+  onFileSelect,
+  onFileRemove,
+  selectedFile,
+  maxSize = 5, // 5MB default
+  className,
+  uploading = false,
+  uploadProgress = 0,
+  ...props
+}: DocumentUploadProps) {
+  return (
+    <FileUpload
+      accept="image/*"
+      maxSize={maxSize}
+      onFileSelect={onFileSelect}
+      onFileRemove={onFileRemove}
+      selectedFile={selectedFile}
+      className={className}
+      uploading={uploading}
+      uploadProgress={uploadProgress}
+      {...props}
+    />
+  );
 }

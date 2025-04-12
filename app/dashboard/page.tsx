@@ -56,17 +56,13 @@ export default function DashboardPage() {
                     >
                       <Card>
                         <CardContent className="p-6">
-                          <div className="aspect-video bg-gray-100 rounded-lg mb-4">
-                            {enrollment.course.videoUrl ? (
-                              <video
-                                src={enrollment.course.videoUrl}
-                                className="w-full h-full object-cover rounded-lg"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                No preview available
-                              </div>
-                            )}
+                          <div className="aspect-video bg-gray-100 rounded-lg mb-4 relative">
+                            <Image
+                              src={enrollment.course.thumbnailUrl}
+                              alt={enrollment.course.title}
+                              fill
+                              className="object-cover rounded-lg"
+                            />
                           </div>
                           <h3 className="font-semibold mb-2">
                             {enrollment.course.title}
@@ -172,17 +168,13 @@ export default function DashboardPage() {
             <Link key={course._id} href={`/dashboard/lessons/${course._id}`}>
               <Card>
                 <CardContent className="p-6">
-                  <div className="aspect-video bg-gray-100 rounded-lg mb-4">
-                    {course.videoUrl ? (
-                      <video
-                        src={course.videoUrl}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        No preview available
-                      </div>
-                    )}
+                  <div className="aspect-video bg-gray-100 rounded-lg mb-4 relative">
+                    <Image
+                      src={course.thumbnailUrl}
+                      alt={course.title}
+                      fill
+                      className="object-cover rounded-lg"
+                    />
                   </div>
                   <h3 className="font-semibold mb-2">{course.title}</h3>
                   <p className="text-gray-600 text-sm mb-4">

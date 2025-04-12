@@ -1,14 +1,16 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -39,6 +41,7 @@ interface AddExamDialogProps {
 }
 
 export function AddExamDialog({ open, onOpenChange }: AddExamDialogProps) {
+  const [selectedCategory, setSelectedCategory] = useState<string>();
   const { mutate: createExam, isPending } = useCreateExam();
   const { data: categories } = useCategories();
   const { data: courses } = useCourses();
@@ -54,24 +57,42 @@ export function AddExamDialog({ open, onOpenChange }: AddExamDialogProps) {
       questions: [],
       category: undefined,
       course: undefined,
+      language: "English",
       status: "Draft",
     },
   });
 
+  // Filter courses by selected category
+  const filteredCourses = courses?.filter(
+    (course) => course.category?._id === selectedCategory
+  );
+
+  // Filter questions by selected category
+  const filteredQuestions = questions?.filter(
+    (question) => question?.category?._id === selectedCategory
+  );
+
   const onSubmit = (data: CreateExamForm) => {
-    createExam(data, {
-      onSuccess: () => {
-        form.reset();
-        onOpenChange(false);
+    createExam(
+      {
+        ...data,
+        duration: Number(data.duration),
+        passingScore: Number(data.passingScore),
       },
-    });
+      {
+        onSuccess: () => {
+          form.reset();
+          onOpenChange(false);
+        },
+      }
+    );
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Add New Exam</DialogTitle>
+          <DialogTitle>Add New Exam</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -134,7 +155,7 @@ export function AddExamDialog({ open, onOpenChange }: AddExamDialogProps) {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="category"
@@ -142,7 +163,10 @@ export function AddExamDialog({ open, onOpenChange }: AddExamDialogProps) {
                   <FormItem>
                     <FormLabel>Category</FormLabel>
                     <Select
-                      onValueChange={field.onChange}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        setSelectedCategory(value);
+                      }}
                       defaultValue={field.value}
                     >
                       <FormControl>
@@ -179,11 +203,39 @@ export function AddExamDialog({ open, onOpenChange }: AddExamDialogProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {courses?.map((course) => (
+                        {filteredCourses?.map((course) => (
                           <SelectItem key={course._id} value={course._id}>
                             {course.title}
                           </SelectItem>
                         ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="language"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Language</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select language" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="English">English</SelectItem>
+                        <SelectItem value="French">French</SelectItem>
+                        <SelectItem value="Kinyarwanda">Kinyarwanda</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -225,7 +277,7 @@ export function AddExamDialog({ open, onOpenChange }: AddExamDialogProps) {
                 <FormItem>
                   <FormLabel>Questions</FormLabel>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border rounded-lg p-4">
-                    {questions?.map((question) => (
+                    {filteredQuestions?.map((question) => (
                       <div
                         key={question._id}
                         className="flex items-start gap-2"
@@ -266,9 +318,6 @@ export function AddExamDialog({ open, onOpenChange }: AddExamDialogProps) {
                             >
                               {question.difficulty}
                             </span>
-                            <span className="text-xs text-gray-500">
-                              {question.category?.categoryName}
-                            </span>
                           </div>
                         </div>
                       </div>
@@ -279,13 +328,15 @@ export function AddExamDialog({ open, onOpenChange }: AddExamDialogProps) {
               )}
             />
 
-            <Button
-              type="submit"
-              className="w-full bg-[#1045A1] hover:bg-[#0D3A8B] h-12"
-              isLoading={isPending}
-            >
-              Create Exam
-            </Button>
+            <DialogFooter>
+              <Button
+                type="submit"
+                className="w-full bg-[#1045A1] hover:bg-[#0D3A8B]"
+                isLoading={isPending}
+              >
+                Create Exam
+              </Button>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>
