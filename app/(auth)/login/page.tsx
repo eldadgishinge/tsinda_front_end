@@ -37,6 +37,11 @@ export default function LoginPage() {
     login(data);
   };
 
+  const handleGoogleSignIn = () => {
+    // Redirect to Google OAuth endpoint
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
       <Card className="w-full max-w-[480px] shadow-none border-none">
@@ -56,6 +61,33 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold text-center">
             Welcome back to Tsindacyane
           </h1>
+
+          {/* Google Sign In Button */}
+          <Button
+            variant="outline"
+            className="w-full h-12 flex items-center justify-center gap-3"
+            onClick={handleGoogleSignIn}
+          >
+            <Image
+              src="/google.svg"
+              alt="Google"
+              width={20}
+              height={20}
+              className="w-5 h-5"
+            />
+            Continue with Google
+          </Button>
+
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or continue with
+              </span>
+            </div>
+          </div>
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
