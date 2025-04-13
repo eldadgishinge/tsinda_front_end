@@ -13,6 +13,17 @@ export function useExams() {
   });
 }
 
+export function useExamDetails(examId: string) {
+  return useQuery({
+    queryKey: ["exam", examId],
+    queryFn: async () => {
+      const response = await axios.get(`/exams/${examId}`);
+      return response.data as Exam;
+    },
+    enabled: !!examId,
+  });
+}
+
 export function useCreateRandomExam() {
   const queryClient = useQueryClient();
 

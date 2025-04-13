@@ -3,17 +3,33 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Eye, Trash2 } from "lucide-react";
 import { AddExamDialog } from "@/components/add-exam-dialog";
 import { useExams, useDeleteExam } from "@/hooks/use-exams";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Exam } from "@/lib/validations/exam";
 import Link from "next/link";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function ExamsPage() {
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [examToDelete, setExamToDelete] = useState<Exam | null>(null);
   const { data: exams, isLoading } = useExams();
   const { mutate: deleteExam, isPending: isDeleting } = useDeleteExam();
+
+  const handleDelete = () => {
+    if (examToDelete) {
+      deleteExam(examToDelete._id);
+      setExamToDelete(null);
+    }
+  };
 
   const columns: ColumnDef<Exam>[] = [
     {
@@ -66,14 +82,10 @@ export default function ExamsPage() {
               <Eye className="h-4 w-4" />
             </Button>
           </Link>
-          <Button variant="ghost" size="icon">
-            <Pencil className="h-4 w-4" />
-          </Button>
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => deleteExam(row.original._id)}
-            isLoading={isDeleting}
+            onClick={() => setExamToDelete(row.original)}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -108,6 +120,30 @@ export default function ExamsPage() {
       </div>
 
       <AddExamDialog open={showAddDialog} onOpenChange={setShowAddDialog} />
+
+      <Dialog open={!!examToDelete} onOpenChange={() => setExamToDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Exam</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{examToDelete?.title}"? This
+              action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setExamToDelete(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              isLoading={isDeleting}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -132,28 +132,30 @@ export default function AssessmentsPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {exams?.map((exam) => (
-            <Link
-              key={exam._id}
-              href={`/dashboard/assessments/start?id=${exam._id}`}
-              className="block border rounded-lg p-6 hover:border-[#1045A1] transition-colors"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold mb-1">{exam.title}</h3>
-                  <p className="text-sm text-gray-600">{exam.description}</p>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm font-medium">
-                    {exam.questions.length} Questions
+          {exams
+            ?.filter((exam) => exam.status === "Published")
+            ?.map((exam) => (
+              <Link
+                key={exam._id}
+                href={`/dashboard/assessments/start?id=${exam._id}`}
+                className="block border rounded-lg p-6 hover:border-[#1045A1] transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold mb-1">{exam.title}</h3>
+                    <p className="text-sm text-gray-600">{exam.description}</p>
                   </div>
-                  <div className="text-sm text-gray-500">
-                    {exam.duration} minutes
+                  <div className="text-right">
+                    <div className="text-sm font-medium">
+                      {exam.questions.length} Questions
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {exam.duration} minutes
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))}
         </div>
       )}
 

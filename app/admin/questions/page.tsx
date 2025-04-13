@@ -3,16 +3,28 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
-import { Pencil, Trash2 } from "lucide-react";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 import { AddQuestionDialog } from "@/components/add-question-dialog";
+import { QuestionActionsDialog } from "@/components/question-actions-dialog";
 import { useQuestions, useDeleteQuestion } from "@/hooks/use-questions";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Question } from "@/lib/validations/question";
 
 export default function QuestionsPage() {
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [selectedQuestion, setSelectedQuestion] = useState<Question>();
+  const [showViewDialog, setShowViewDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
   const { data: questions, isLoading } = useQuestions();
   const { mutate: deleteQuestion, isPending: isDeleting } = useDeleteQuestion();
+
+  const handleDelete = () => {
+    if (selectedQuestion) {
+      deleteQuestion(selectedQuestion._id);
+    }
+  };
 
   const columns: ColumnDef<Question>[] = [
     {
@@ -60,14 +72,34 @@ export default function QuestionsPage() {
       id: "actions",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setSelectedQuestion(row.original);
+              setShowViewDialog(true);
+            }}
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setSelectedQuestion(row.original);
+              setShowEditDialog(true);
+            }}
+          >
             <Pencil className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => deleteQuestion(row.original._id)}
-            isLoading={isDeleting}
+            onClick={() => {
+              setSelectedQuestion(row.original);
+              setShowDeleteDialog(true);
+            }}
+            disabled={isDeleting}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -106,6 +138,28 @@ export default function QuestionsPage() {
       </div>
 
       <AddQuestionDialog open={showAddDialog} onOpenChange={setShowAddDialog} />
+
+      <QuestionActionsDialog
+        type="view"
+        question={selectedQuestion}
+        open={showViewDialog}
+        onOpenChange={setShowViewDialog}
+      />
+
+      <QuestionActionsDialog
+        type="edit"
+        question={selectedQuestion}
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+      />
+
+      <QuestionActionsDialog
+        type="delete"
+        question={selectedQuestion}
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }
