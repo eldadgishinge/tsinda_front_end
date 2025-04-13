@@ -1,105 +1,116 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useCallback } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { useQuery } from "@tanstack/react-query"
-import axios from "@/lib/axios"
-import { Loader2 } from "lucide-react"
+import { useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
+import axios from "@/lib/axios";
+import { Loader2 } from "lucide-react";
+import { set } from "date-fns";
+import toast from "react-hot-toast";
 
 export default function AssessmentStartPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const examId = searchParams.get("id")
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const [hasStarted, setHasStarted] = useState(false)
-  const [attemptId, setAttemptId] = useState<string>()
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const examId = searchParams.get("id");
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [attemptId, setAttemptId] = useState<string>();
+  const [isAttempting, setIsAttempting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: exam, isLoading } = useQuery({
     queryKey: ["exam", examId],
     queryFn: async () => {
-      const response = await axios.get(`/exams/${examId}`)
-      return response.data
+      const response = await axios.get(`/exams/${examId}`);
+      return response.data;
     },
     enabled: !!examId,
-  })
+  });
 
   const startExam = async () => {
+    setIsAttempting(true);
     try {
       const response = await axios.post("/exam-attempts/start", {
         examId,
-      })
-      setAttemptId(response.data._id)
+      });
+      setAttemptId(response.data._id);
 
       // Request fullscreen
-      const element = document.documentElement
+      const element = document.documentElement;
       if (element.requestFullscreen) {
-        await element.requestFullscreen()
+        await element.requestFullscreen();
       }
-      setIsFullscreen(true)
-      setHasStarted(true)
+      setIsFullscreen(true);
+      setHasStarted(true);
     } catch (error) {
-      console.error("Failed to start exam:", error)
+      console.error("Failed to start exam:", error);
+      toast.error("Failed to start exam. Please try again.");
+    } finally {
+      setIsAttempting(false);
     }
-  }
+  };
 
   const submitExam = useCallback(async () => {
-    if (!attemptId) return
+    if (!attemptId) return;
+    setIsSubmitting(true);
     try {
-      await axios.put(`/exam-attempts/${attemptId}/complete`)
-      router.push(`/dashboard/assessments/completed/${attemptId}`)
+      await axios.put(`/exam-attempts/${attemptId}/complete`);
+      router.push(`/dashboard/assessments/completed/${attemptId}`);
     } catch (error) {
-      console.error("Failed to submit exam:", error)
+      console.error("Failed to submit exam:", error);
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [attemptId, router])
+  }, [attemptId, router]);
 
   // Handle fullscreen change
   useEffect(() => {
     const handleFullscreenChange = () => {
       if (document.fullscreenElement) {
-        setIsFullscreen(true)
+        setIsFullscreen(true);
       } else if (hasStarted) {
         // Only submit if exam has started and user exits fullscreen
-        submitExam()
+        submitExam();
       }
-    }
+    };
 
-    document.addEventListener("fullscreenchange", handleFullscreenChange)
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => {
-      document.removeEventListener("fullscreenchange", handleFullscreenChange)
-    }
-  }, [hasStarted, submitExam])
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, [hasStarted, submitExam]);
 
   // Handle visibility change (tab change)
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && hasStarted) {
-        submitExam()
+        submitExam();
       }
-    }
+    };
 
-    document.addEventListener("visibilitychange", handleVisibilityChange)
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange)
-    }
-  }, [hasStarted, submitExam])
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [hasStarted, submitExam]);
 
   // Submit on unmount if exam is still ongoing
   useEffect(() => {
     return () => {
       if (hasStarted && !isFullscreen) {
-        submitExam()
+        submitExam();
       }
-    }
-  }, [hasStarted, isFullscreen, submitExam])
+    };
+  }, [hasStarted, isFullscreen, submitExam]);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
-    )
+    );
   }
 
   if (!exam) {
@@ -107,7 +118,7 @@ export default function AssessmentStartPage() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <p className="text-gray-500">Exam not found</p>
       </div>
-    )
+    );
   }
 
   if (hasStarted) {
@@ -134,28 +145,30 @@ export default function AssessmentStartPage() {
                 />
               )}
               <div className="space-y-2">
-                {question.answerOptions.map((option: any, optionIndex: number) => (
-                  <label
-                    key={optionIndex}
-                    className="flex items-center space-x-3 p-3 rounded-lg border hover:border-[#1045A1] cursor-pointer"
-                  >
-                    <input
-                      type="radio"
-                      name={`question-${question._id}`}
-                      value={optionIndex}
-                      className="text-[#1045A1]"
-                      onChange={() => {
-                        // Submit answer
-                        axios.post("/exam-attempts/submit-answer", {
-                          attemptId,
-                          questionId: question._id,
-                          selectedOption: optionIndex,
-                        })
-                      }}
-                    />
-                    <span>{option.text}</span>
-                  </label>
-                ))}
+                {question.answerOptions.map(
+                  (option: any, optionIndex: number) => (
+                    <label
+                      key={optionIndex}
+                      className="flex items-center space-x-3 p-3 rounded-lg border hover:border-[#1045A1] cursor-pointer"
+                    >
+                      <input
+                        type="radio"
+                        name={`question-${question._id}`}
+                        value={optionIndex}
+                        className="text-[#1045A1]"
+                        onChange={() => {
+                          // Submit answer
+                          axios.post("/exam-attempts/submit-answer", {
+                            attemptId,
+                            questionId: question._id,
+                            selectedOption: optionIndex,
+                          });
+                        }}
+                      />
+                      <span>{option.text}</span>
+                    </label>
+                  )
+                )}
               </div>
             </Card>
           ))}
@@ -163,30 +176,31 @@ export default function AssessmentStartPage() {
           <Button
             className="w-full bg-[#1045A1] hover:bg-[#0D3A8B]"
             onClick={submitExam}
+            isLoading={isSubmitting}
           >
             Submit Exam
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="max-w-2xl mx-auto p-6">
       <Card className="p-8">
         <h1 className="text-2xl font-bold mb-6">{exam.title}</h1>
-        
+
         <div className="space-y-4 mb-8">
           <div className="flex justify-between py-2 border-b">
             <span className="text-gray-600">Number of Questions</span>
             <span className="font-medium">{exam.questions.length}</span>
           </div>
-          
+
           <div className="flex justify-between py-2 border-b">
             <span className="text-gray-600">Duration</span>
             <span className="font-medium">{exam.duration} minutes</span>
           </div>
-          
+
           <div className="flex justify-between py-2 border-b">
             <span className="text-gray-600">Passing Score</span>
             <span className="font-medium">{exam.passingScore}%</span>
@@ -196,8 +210,16 @@ export default function AssessmentStartPage() {
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
           <div className="flex">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              <svg
+                className="h-5 w-5 text-yellow-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
             <div className="ml-3">
@@ -207,7 +229,9 @@ export default function AssessmentStartPage() {
               <div className="mt-2 text-sm text-yellow-700">
                 <ul className="list-disc pl-5 space-y-1">
                   <li>The exam will open in full screen mode</li>
-                  <li>Exiting full screen will submit your exam automatically</li>
+                  <li>
+                    Exiting full screen will submit your exam automatically
+                  </li>
                   <li>Changing tabs or applications will submit your exam</li>
                   <li>Make sure you have a stable internet connection</li>
                   <li>Ensure your device is fully charged or plugged in</li>
@@ -220,10 +244,11 @@ export default function AssessmentStartPage() {
         <Button
           className="w-full bg-[#1045A1] hover:bg-[#0D3A8B]"
           onClick={startExam}
+          isLoading={isAttempting}
         >
           Start Exam
         </Button>
       </Card>
     </div>
-  )
+  );
 }

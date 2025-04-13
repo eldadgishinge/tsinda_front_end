@@ -80,16 +80,29 @@ export function Upload({
           "Content-Type": "multipart/form-data",
         },
         onUploadProgress: (progressEvent) => {
-          const progress = progressEvent.total
-            ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
-            : 0;
-          setUploadProgress(progress);
+          // Check if we have total size information
+          if (progressEvent.total) {
+            // Calculate actual progress percentage based on loaded/total
+            const progress = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            setUploadProgress(progress);
+          } else {
+            // Handle case where total size is unknown
+            // Option 1: Show indeterminate progress (e.g., increment slowly)
+            const currentProgress = uploadProgress || 0;
+            // Increase by small amounts but cap at 90% (reserving 100% for completion)
+            const estimatedProgress = Math.min(90, currentProgress + 2);
+            setUploadProgress(estimatedProgress);
+          }
         },
       });
+      console.log("Upload response:", response.data);
 
       const url = response.data[`${type}Url`];
       onUploadComplete(url);
     } catch (error: any) {
+      console.log("Upload error:", error);
       toast.error(error.response?.data?.message || `Failed to upload ${type}`);
       setSelectedFile(null);
     } finally {

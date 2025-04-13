@@ -4,7 +4,7 @@ const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
 const axiosInstance = axios.create({
   baseURL,
-  timeout: 10000,
+  timeout: 30000,
   headers: {
     "Content-Type": "application/json",
   },
