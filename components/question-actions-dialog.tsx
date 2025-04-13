@@ -2,13 +2,15 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Form,
@@ -29,59 +31,171 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   createQuestionSchema,
   type CreateQuestionForm,
+  type Question,
 } from "@/lib/validations/question";
-import { useCreateQuestion } from "@/hooks/use-questions";
+import { useUpdateQuestion } from "@/hooks/use-questions";
 import { useCategories } from "@/hooks/use-categories";
 import { Upload } from "@/components/ui/upload";
+import { Check } from "lucide-react";
 
-interface AddQuestionDialogProps {
+interface QuestionActionsDialogProps {
+  type: "view" | "edit" | "delete";
+  question?: Question;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onConfirm?: (data?: any) => void;
 }
 
-export function AddQuestionDialog({
+export function QuestionActionsDialog({
+  type,
+  question,
   open,
   onOpenChange,
-}: AddQuestionDialogProps) {
-  const { mutate: createQuestion, isPending: isCreating } = useCreateQuestion();
+  onConfirm,
+}: QuestionActionsDialogProps) {
+  const { mutate: updateQuestion, isPending: isUpdating } = useUpdateQuestion();
   const { data: categories } = useCategories();
 
   const form = useForm<CreateQuestionForm>({
     resolver: zodResolver(createQuestionSchema),
     defaultValues: {
-      text: "",
-      answerOptions: [
+      text: question?.text || "",
+      imageUrl: question?.imageUrl,
+      answerOptions: question?.answerOptions || [
         { text: "", isCorrect: true },
         { text: "", isCorrect: false },
         { text: "", isCorrect: false },
         { text: "", isCorrect: false },
       ],
-      difficulty: "Medium",
-      status: "Active",
-      category: undefined,
+      difficulty: question?.difficulty || "Medium",
+      status: question?.status || "Active",
+      category: question?.category?._id,
     },
   });
 
-  const onSubmit = (data: CreateQuestionForm) => {
-    createQuestion(data, {
-      onSuccess: () => {
-        form.reset();
-        onOpenChange(false);
-      },
-    });
+  const handleConfirm = (data?: any) => {
+    if (onConfirm) {
+      onConfirm(data);
+    }
+    onOpenChange(false);
   };
+
+  if (type === "delete") {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Question</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this question? This action cannot
+              be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={() => handleConfirm()}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  const QuestionPreview = () => (
+    <div className="space-y-6 p-6 bg-gray-50 rounded-lg">
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">{question?.text}</h3>
+        {question?.imageUrl && (
+          <img
+            src={question.imageUrl}
+            alt="Question"
+            className="max-w-full h-auto rounded-lg"
+          />
+        )}
+        <div className="space-y-2">
+          {question?.answerOptions.map((option, index) => (
+            <div
+              key={index}
+              className={`flex items-center space-x-3 p-4 rounded-lg border ${
+                option.isCorrect
+                  ? "bg-green-50 border-green-200"
+                  : "bg-white hover:bg-gray-50"
+              }`}
+            >
+              <div
+                className={`flex h-4 w-4 shrink-0 rounded-full border ${
+                  option.isCorrect
+                    ? "border-green-500 bg-green-500"
+                    : "border-gray-300"
+                }`}
+              >
+                {option.isCorrect && (
+                  <Check className="h-3 w-3 text-white m-auto" />
+                )}
+              </div>
+              <span>{option.text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <span className="font-medium">Category:</span>{" "}
+          <span className="text-gray-600">
+            {question?.category?.categoryName}
+          </span>
+        </div>
+        <div>
+          <span className="font-medium">Difficulty:</span>{" "}
+          <span className="text-gray-600">{question?.difficulty}</span>
+        </div>
+        <div>
+          <span className="font-medium">Status:</span>{" "}
+          <span className="text-gray-600">{question?.status}</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (type === "view") {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Question Details</DialogTitle>
+          </DialogHeader>
+          <QuestionPreview />
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">
-            Add New Question
-          </DialogTitle>
+          <DialogTitle>Edit Question</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit((data) => {
+              if (question?._id) {
+                updateQuestion(
+                  { questionId: question._id, ...data },
+                  {
+                    onSuccess: () => {
+                      onOpenChange(false);
+                    },
+                  }
+                );
+              }
+            })}
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
               name="text"
@@ -250,9 +364,9 @@ export function AddQuestionDialog({
             <Button
               type="submit"
               className="w-full bg-[#1045A1] hover:bg-[#0D3A8B] h-12"
-              isLoading={isCreating}
+              isLoading={isUpdating}
             >
-              Create Question
+              Save Changes
             </Button>
           </form>
         </Form>

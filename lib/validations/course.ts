@@ -1,4 +1,4 @@
-import * as z from "zod"
+import * as z from "zod";
 
 export const createCourseSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters"),
@@ -12,45 +12,48 @@ export const createCourseSchema = z.object({
   instructor: z.string({
     required_error: "Please select an instructor",
   }),
-  thumbnail: z.any()
-    .refine((file) => file?.length > 0, "Thumbnail is required")
-    .refine(
-      (file) => file?.[0]?.size <= 5 * 1024 * 1024,
-      "Thumbnail must be less than 5MB"
-    ),
-  video: z.any()
-    .optional()
-    .refine(
-      (file) => !file || file?.[0]?.size <= 100 * 1024 * 1024,
-      "Video must be less than 100MB"
-    ),
-  document: z.any()
-    .optional()
-    .refine(
-      (file) => !file || file?.[0]?.size <= 10 * 1024 * 1024,
-      "Document must be less than 10MB"
-    ),
-})
+  thumbnailUrl: z
+    .string({
+      required_error: "Please upload a thumbnail",
+    })
+    .url({
+      message: "Thumbnail URL must be a valid URL",
+    }),
+  videoUrl: z
+    .string({
+      required_error: "Please upload a video",
+    })
+    .url({
+      message: "Video URL must be a valid URL",
+    }),
+  documentUrl: z
+    .string({
+      required_error: "Please upload a document",
+    })
+    .url({
+      message: "Document URL must be a valid URL",
+    }),
+});
 
-export type CreateCourseForm = z.infer<typeof createCourseSchema>
+export type CreateCourseForm = z.infer<typeof createCourseSchema>;
 
 export interface Course {
-  _id: string
-  title: string
-  description: string
-  language: string
+  _id: string;
+  title: string;
+  description: string;
+  language: string;
   category: {
-    _id: string
-    categoryName: string
-  }
+    _id: string;
+    categoryName: string;
+  };
   instructor: {
-    _id: string
-    name: string
-    email: string
-  }
-  thumbnailUrl: string
-  videoUrl?: string
-  documentUrl?: string
-  isPublished: boolean
-  createdAt: string
+    _id: string;
+    name: string;
+    email: string;
+  };
+  thumbnailUrl: string;
+  videoUrl?: string;
+  documentUrl?: string;
+  isPublished: boolean;
+  createdAt: string;
 }

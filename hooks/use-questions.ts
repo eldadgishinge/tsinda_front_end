@@ -38,6 +38,35 @@ export function useCreateQuestion() {
   });
 }
 
+export function useUpdateQuestion() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      questionId,
+      ...data
+    }: {
+      questionId: string;
+      text: string;
+      imageUrl?: string;
+      answerOptions: { text: string; isCorrect: boolean }[];
+      difficulty: "Easy" | "Medium" | "Difficult";
+      status: "Active" | "Inactive";
+      category: string;
+    }) => {
+      const response = await axios.put(`/questions/${questionId}`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["questions"] });
+      toast.success("Question updated successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to update question");
+    },
+  });
+}
+
 export function useDeleteQuestion() {
   const queryClient = useQueryClient();
 

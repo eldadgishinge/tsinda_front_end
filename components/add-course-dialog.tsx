@@ -1,15 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -27,34 +26,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  createCourseSchema,
-  type CreateCourseForm,
-} from "@/lib/validations/course";
+import { createCourseSchema } from "@/lib/validations/course";
+import type { z } from "zod";
 import { useCreateCourse } from "@/hooks/use-courses";
 import { useCategories } from "@/hooks/use-categories";
-import { useUploadVideo, useUploadDocument } from "@/hooks/use-upload";
-import { VideoUpload } from "@/components/ui/video-upload";
-import { DocumentUpload, ImageUpload } from "@/components/ui/document-upload";
 import { useUsers } from "@/hooks/use-users";
+import { Upload } from "@/components/ui/upload";
+
+type CreateCourseForm = z.infer<typeof createCourseSchema>;
 
 interface AddCourseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-const languages = ["English", "French", "Kinyarwanda"] as const;
-
 export function AddCourseDialog({ open, onOpenChange }: AddCourseDialogProps) {
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [documentFile, setDocumentFile] = useState<File | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-
-  const { mutate: createCourse, isPending: isCreating } = useCreateCourse();
-  const { mutateAsync: uploadVideo, isPending: isUploadingVideo } =
-    useUploadVideo();
-  const { mutateAsync: uploadDocument, isPending: isUploadingDocument } =
-    useUploadDocument();
+  const { mutate: createCourse, isPending } = useCreateCourse();
   const { data: categories } = useCategories();
   const { data: instructors } = useUsers();
 
@@ -69,52 +56,20 @@ export function AddCourseDialog({ open, onOpenChange }: AddCourseDialogProps) {
     },
   });
 
-  const onSubmit = async (data: CreateCourseForm) => {
-    try {
-      let videoUrl: string | undefined;
-      let documentUrl: string | undefined;
-
-      if (videoFile) {
-        videoUrl = await uploadVideo(videoFile);
-      }
-
-      if (documentFile) {
-        documentUrl = await uploadDocument(documentFile);
-      }
-      if (imageFile) {
-        const imageUrl = await uploadVideo(imageFile);
-        data.thumbnail = imageUrl;
-      }
-
-      createCourse(
-        {
-          ...data,
-          videoUrl,
-          documentUrl,
-        },
-        {
-          onSuccess: () => {
-            form.reset();
-            setVideoFile(null);
-            setDocumentFile(null);
-            onOpenChange(false);
-          },
-        }
-      );
-    } catch (error) {
-      console.error("Error creating course:", error);
-    }
+  const onSubmit = (data: CreateCourseForm) => {
+    createCourse(data, {
+      onSuccess: () => {
+        form.reset();
+        onOpenChange(false);
+      },
+    });
   };
-
-  console.log("Form state:", form.formState);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">
-            Add New Course
-          </DialogTitle>
+          <DialogTitle>Add New Course</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -146,17 +101,26 @@ export function AddCourseDialog({ open, onOpenChange }: AddCourseDialogProps) {
                 </FormItem>
               )}
             />
-            {/* thumbnail */}
-            <FormItem>
-              <FormLabel>Thumbnail</FormLabel>
-              <ImageUpload
-                onFileSelect={setImageFile}
-                onFileRemove={() => setImageFile(null)}
-                selectedFile={imageFile}
-                uploading={isUploadingVideo}
-              />
-            </FormItem>
-            {/* end thumbnail */}
+
+            <FormField
+              control={form.control}
+              name="thumbnailUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Thumbnail</FormLabel>
+                  <FormControl>
+                    <Upload
+                      type="image"
+                      onUploadComplete={field.onChange}
+                      onRemove={() => field.onChange("")}
+                      defaultValue={field.value}
+                      error={form.formState.errors.thumbnailUrl?.message}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
@@ -175,11 +139,9 @@ export function AddCourseDialog({ open, onOpenChange }: AddCourseDialogProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {languages.map((language) => (
-                          <SelectItem key={language} value={language}>
-                            {language}
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="English">English</SelectItem>
+                        <SelectItem value="French">French</SelectItem>
+                        <SelectItem value="Kinyarwanda">Kinyarwanda</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -205,7 +167,7 @@ export function AddCourseDialog({ open, onOpenChange }: AddCourseDialogProps) {
                       <SelectContent>
                         {categories?.map((category) => (
                           <SelectItem key={category._id} value={category._id}>
-                            {category?.categoryName}
+                            {category.categoryName}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -246,32 +208,52 @@ export function AddCourseDialog({ open, onOpenChange }: AddCourseDialogProps) {
                 )}
               />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormItem>
-                <FormLabel>Video</FormLabel>
-                <VideoUpload
-                  onFileSelect={setVideoFile}
-                  onFileRemove={() => setVideoFile(null)}
-                  selectedFile={videoFile}
-                  uploading={isUploadingVideo}
-                />
-              </FormItem>
 
-              <FormItem>
-                <FormLabel>Notes (Document)</FormLabel>
-                <DocumentUpload
-                  onFileSelect={setDocumentFile}
-                  onFileRemove={() => setDocumentFile(null)}
-                  selectedFile={documentFile}
-                  uploading={isUploadingDocument}
-                />
-              </FormItem>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="videoUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Video</FormLabel>
+                    <FormControl>
+                      <Upload
+                        type="video"
+                        onUploadComplete={field.onChange}
+                        onRemove={() => field.onChange("")}
+                        defaultValue={field.value}
+                        error={form.formState.errors.videoUrl?.message}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="documentUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Document</FormLabel>
+                    <FormControl>
+                      <Upload
+                        type="document"
+                        onUploadComplete={field.onChange}
+                        onRemove={() => field.onChange("")}
+                        defaultValue={field.value}
+                        error={form.formState.errors.documentUrl?.message}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <Button
               type="submit"
               className="w-full bg-[#1045A1] hover:bg-[#0D3A8B] h-12"
-              isLoading={isCreating || isUploadingVideo || isUploadingDocument}
+              isLoading={isPending}
             >
               Create Course
             </Button>
