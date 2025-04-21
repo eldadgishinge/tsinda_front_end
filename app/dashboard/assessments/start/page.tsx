@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import axios from "@/lib/axios";
 import { Loader2 } from "lucide-react";
-import { set } from "date-fns";
 import toast from "react-hot-toast";
 
-export default function AssessmentStartPage() {
+// Separate component that uses useSearchParams
+function AssessmentContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const examId = searchParams.get("id");
@@ -176,9 +176,16 @@ export default function AssessmentStartPage() {
           <Button
             className="w-full bg-[#1045A1] hover:bg-[#0D3A8B]"
             onClick={submitExam}
-            isLoading={isSubmitting}
+            disabled={isSubmitting}
           >
-            Submit Exam
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              "Submit Exam"
+            )}
           </Button>
         </div>
       </div>
@@ -244,11 +251,32 @@ export default function AssessmentStartPage() {
         <Button
           className="w-full bg-[#1045A1] hover:bg-[#0D3A8B]"
           onClick={startExam}
-          isLoading={isAttempting}
+          disabled={isAttempting}
         >
-          Start Exam
+          {isAttempting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Starting...
+            </>
+          ) : (
+            "Start Exam"
+          )}
         </Button>
       </Card>
     </div>
   );
 }
+
+// Main component with Suspense
+export default function AssessmentStartPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]">
+      <Loader2 className="h-8 w-8 animate-spin" />
+    </div>}>
+      <AssessmentContent />
+    </Suspense>
+  );
+}
+
+// Don't forget to add this import at the top
+import { useSearchParams } from "next/navigation";
