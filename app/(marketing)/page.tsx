@@ -129,7 +129,9 @@ export default function HomePage() {
         <section className="py-20 text-center">
           <div className="container mx-auto px-4">
             <h1 className="text-4xl md:text-6xl font-bold max-w-4xl mx-auto leading-tight mb-8">
-              Your Journey to Safe Driving Begins Here! Learn Anytime, Anywhere.
+
+              {/* Your Journey to Safe Driving Begins Here! Learn Anytime, Anywhere. */}
+              Tsinda  Coming Soon
             </h1>
             <Button size="lg" className="bg-[#1045A1] hover:bg-[#0D3A8B]">
               Start Your Learning Adventure Now
