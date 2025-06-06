@@ -17,7 +17,7 @@ export default function AssessmentQuestionsPage() {
       <div className="max-w-3xl mx-auto">
         {/* Close Button */}
         <div className="mb-12">
-          <Link 
+          <Link
             href="/dashboard/assessments"
             className="inline-flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100"
           >
@@ -37,12 +37,11 @@ export default function AssessmentQuestionsPage() {
           {/* Assessment Options */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* 10 Questions Option */}
-            <Card 
-              className={`cursor-pointer transition-colors ${
-                selectedOption === '10' 
-                  ? 'border-[#1045A1] bg-[#E6EDF7]' 
-                  : 'hover:border-[#1045A1]'
-              }`}
+            <Card
+              className={`cursor-pointer transition-colors ${selectedOption === '10'
+                ? 'border-[#1045A1] bg-[#E6EDF7]'
+                : 'hover:border-[#1045A1]'
+                }`}
               onClick={() => setSelectedOption('10')}
             >
               <CardContent className="p-6 space-y-4">
@@ -55,12 +54,11 @@ export default function AssessmentQuestionsPage() {
             </Card>
 
             {/* 25 Questions Option */}
-            <Card 
-              className={`cursor-pointer transition-colors ${
-                selectedOption === '25' 
-                  ? 'border-[#1045A1] bg-[#E6EDF7]' 
-                  : 'hover:border-[#1045A1]'
-              }`}
+            <Card
+              className={`cursor-pointer transition-colors ${selectedOption === '25'
+                ? 'border-[#1045A1] bg-[#E6EDF7]'
+                : 'hover:border-[#1045A1]'
+                }`}
               onClick={() => setSelectedOption('25')}
             >
               <CardContent className="p-6 space-y-4">
@@ -74,7 +72,7 @@ export default function AssessmentQuestionsPage() {
           </div>
 
           {/* Get Started Button */}
-          <Button 
+          <Button
             className="w-full max-w-md h-12 bg-[#1045A1] hover:bg-[#0D3A8B] text-white"
             onClick={() => {
               // Navigate to the assessment questions
