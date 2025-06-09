@@ -3,8 +3,12 @@
 ## Description
 Tsinda is a comprehensive driving theory learning platform designed to help users prepare for their driving tests in Rwanda. The application provides interactive lessons, assessments, and quizzes in both English and Kinyarwanda, making it accessible to both local and foreign residents.
 
-## GitHub Repository
-[Link to Frontend Repository](https://github.com/your-username/tsinda-frontend)
+## Figma mockups Designs 
+[Figma mockups Designs ](https://www.figma.com/design/kWFcPt7KHLj4x8RpGrmE1B/Tsindacyane-design?node-id=137-1540&t=xxx4bHJQMv6MQDoL-1)
+
+## GitHub Repository || The Reason why I created two separate repository is to facilitate in the deploymentof the web application
+[Link to Frontend Repository](https://github.com/eldadgishinge/tsinda_front_end)
+[Link to Backend Repository](https://github.com/eldadgishinge/Tsinda-backend)
 
 ## Features
 - Interactive driving lessons with video content
