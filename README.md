@@ -6,6 +6,9 @@ Tsinda is a comprehensive driving theory learning platform designed to help user
 ## Figma mockups Designs 
 [Figma mockups Designs ](https://www.figma.com/design/kWFcPt7KHLj4x8RpGrmE1B/Tsindacyane-design?node-id=137-1540&t=xxx4bHJQMv6MQDoL-1)
 
+## DEMO Video ||  Tsinda Initial software product/solution demonstration
+[Demo Video ](https://youtu.be/5EhafmftfNw)
+
 ## GitHub Repository || The Reason why I created two separate repository is to facilitate in the deploymentof the web application
 [Link to Frontend Repository](https://github.com/eldadgishinge/tsinda_front_end)
 
