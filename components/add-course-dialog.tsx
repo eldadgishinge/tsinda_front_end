@@ -215,14 +215,11 @@ export function AddCourseDialog({ open, onOpenChange }: AddCourseDialogProps) {
                 name="videoUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Video</FormLabel>
+                    <FormLabel>Video URL</FormLabel>
                     <FormControl>
-                      <Upload
-                        type="video"
-                        onUploadComplete={field.onChange}
-                        onRemove={() => field.onChange("")}
-                        defaultValue={field.value}
-                        error={form.formState.errors.videoUrl?.message}
+                      <Input 
+                        {...field} 
+                        placeholder="Enter video URL (e.g., YouTube, Vimeo, etc.)"
                       />
                     </FormControl>
                     <FormMessage />
