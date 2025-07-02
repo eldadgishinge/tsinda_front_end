@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -20,21 +20,16 @@ import {
   useUpdateProgress,
 } from "@/hooks/use-enrollments";
 
-function isYouTubeUrl(url: string) {
-  const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
-  return youtubeRegex.test(url);
+function isVimeoUrl(url: string) {
+  const vimeoRegex = /^(https?:\/\/)?(www\.)?(vimeo\.com)\/.+/;
+  return vimeoRegex.test(url);
 }
 
-function getYouTubeEmbedUrl(url: string) {
-  // Handle youtu.be URLs
-  if (url.includes("youtu.be")) {
-    const videoId = url.split("youtu.be/")[1]?.split("?")[0];
-    return `https://www.youtube.com/embed/${videoId}`;
-  }
-
-  // Handle youtube.com URLs
-  const videoId = url.split("v=")[1]?.split("&")[0];
-  return `https://www.youtube.com/embed/${videoId}`;
+function getVimeoEmbedUrl(url: string) {
+  // Extract video ID from Vimeo URL
+  // Handle formats like: https://vimeo.com/1089134258
+  const videoId = url.split("vimeo.com/")[1]?.split("?")[0];
+  return `https://player.vimeo.com/video/${videoId}?title=0&byline=0&portrait=0&transparent=0&controls=1&pip=0&dnt=1`;
 }
 
 export default function LessonDetailsPage() {
@@ -44,6 +39,7 @@ export default function LessonDetailsPage() {
   const [videoProgress, setVideoProgress] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressInterval = useRef<NodeJS.Timeout>();
+  const router = useRouter();
 
   const { data: course, isLoading: isLoadingCourse } = useCourse(
     params.id as string
@@ -117,33 +113,36 @@ export default function LessonDetailsPage() {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="sticky top-0 z-10 flex items-center gap-4 border-b bg-white px-4 py-3">
-        <Link
-          href="/dashboard/lessons"
+        <button
+          type="button"
+          onClick={() => router.back()}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="h-5 w-5" />
-          <span>CLOSE</span>
-        </Link>
+          <span>BACK</span>
+        </button>
         <h1 className="text-xl font-semibold">{course.title}</h1>
       </div>
 
       {/* Main Content */}
       <div className="flex-1">
         {enrollment?.isEnrolled ? (
-          <div className="aspect-video bg-black">
+          <div className="aspect-video bg-black flex items-center justify-center w-full max-h-[65vh]">
             {course.videoUrl &&
-              (isYouTubeUrl(course.videoUrl) ? (
+              (isVimeoUrl(course.videoUrl) ? (
                 <iframe
-                  src={getYouTubeEmbedUrl(course.videoUrl)}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  src={getVimeoEmbedUrl(course.videoUrl)}
+                  className="w-full h-full border-0"
+                  allow="autoplay; fullscreen; picture-in-picture"
                   allowFullScreen
+                  title="Course Video"
                 />
               ) : (
                 <video
                   ref={videoRef}
                   src={course.videoUrl}
-                  className="w-full h-full"
+                  className="w-full h-full object-contain"
+                  style={{ maxHeight: '65vh' }}
                   controls
                   onPlay={startProgressTracking}
                   onPause={() => {
@@ -151,6 +150,7 @@ export default function LessonDetailsPage() {
                       clearInterval(progressInterval.current);
                     }
                   }}
+                  poster={course.thumbnailUrl}
                 />
               ))}
           </div>
@@ -207,7 +207,7 @@ export default function LessonDetailsPage() {
         <Link href={`/dashboard/lessons/${lessonId}/exercise`}>
           <Button
             variant={"outline"}
-            className={`w-full h-12 justify-center rounded-full border-2 ${"border-[#1045A1] text-[#1045A1] hover:bg-blue-50"}`}
+            className={`w-full h-10 justify-center rounded-full border-2 text-sm ${"border-[#1045A1] text-[#1045A1] hover:bg-blue-50"}`}
           >
             Exercise
           </Button>
@@ -216,7 +216,7 @@ export default function LessonDetailsPage() {
         <Link href={`/dashboard/lessons/${lessonId}/notes`}>
           <Button
             variant={"default"}
-            className={`w-full h-12 justify-center rounded-full border-2 ${"bg-[#1045A1] text-white hover:bg-[#0D3A8B] border-[#1045A1]"}`}
+            className={`w-full h-10 justify-center rounded-full border-2 text-sm ${"bg-[#1045A1] text-white hover:bg-[#0D3A8B] border-[#1045A1]"}`}
           >
             Notes
           </Button>
@@ -224,7 +224,7 @@ export default function LessonDetailsPage() {
 
         <Button
           variant={"outline"}
-          className={`h-12 justify-center rounded-full border-2 ${"border-[#1045A1] text-[#1045A1] hover:bg-blue-50"}`}
+          className={`h-10 justify-center rounded-full border-2 text-sm ${"border-[#1045A1] text-[#1045A1] hover:bg-blue-50"}`}
         >
           <svg
             viewBox="0 0 24 24"
@@ -236,7 +236,7 @@ export default function LessonDetailsPage() {
           Join Community
         </Button>
 
-        <Button className="h-12 justify-center rounded-full bg-[#1045A1] font-medium hover:bg-[#0D3A8B]">
+        <Button className="h-10 justify-center rounded-full bg-[#1045A1] font-medium hover:bg-[#0D3A8B] text-sm">
           Register for info session
         </Button>
       </div>

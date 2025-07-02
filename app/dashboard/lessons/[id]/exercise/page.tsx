@@ -2,34 +2,70 @@
 
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { VideoPlayer } from "@/components/video-player"
+import { useCourse } from "@/hooks/use-courses"
+
+function isVimeoUrl(url: string) {
+  const vimeoRegex = /^(https?:\/\/)?(www\.)?(vimeo\.com)\/.+/;
+  return vimeoRegex.test(url);
+}
+
+function getVimeoEmbedUrl(url: string) {
+  // Extract video ID from Vimeo URL
+  // Handle formats like: https://vimeo.com/1089134258
+  const videoId = url.split("vimeo.com/")[1]?.split("?")[0];
+  return `https://player.vimeo.com/video/${videoId}?title=0&byline=0&portrait=0&transparent=0&controls=1&pip=0&dnt=1`;
+}
 
 export default function LessonExercisePage() {
   const params = useParams()
-  const lessonId = params.id
+  const lessonId = params.id as string
+  const { data: course, isLoading } = useCourse(lessonId)
+  const router = useRouter();
 
   return (
     <div className="flex flex-col h-screen bg-white">
       {/* Header */}
       <div className="sticky top-0 z-10 flex items-center gap-4 border-b bg-white px-4 py-3">
-        <Link href="/dashboard/lessons" className="flex items-center gap-2 text-gray-600 hover:text-gray-900">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+        >
           <ArrowLeft className="h-5 w-5" />
-          <span>CLOSE</span>
-        </Link>
-        <h1 className="text-xl font-semibold">Driving Lesson 101</h1>
+          <span>BACK</span>
+        </button>
+        <h1 className="text-xl font-semibold">{course?.title || "Lesson"}</h1>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
           {/* Left Column - Video */}
-          <div className="h-full bg-black">
-            <VideoPlayer
-              src="https://example.com/video.mp4"
-              poster="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Tsindacyane_design-kbHXDHkers9OV6WtZBSUGvsDAfpAam.png"
-            />
+          <div className="aspect-video bg-black flex items-center justify-center w-full">
+            {isLoading ? (
+              <div className="w-full h-full flex items-center justify-center text-white">Loading...</div>
+            ) : course?.videoUrl ? (
+              isVimeoUrl(course.videoUrl) ? (
+                <iframe
+                  src={getVimeoEmbedUrl(course.videoUrl)}
+                  className="w-full h-full border-0"
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowFullScreen
+                  title="Course Video"
+                />
+              ) : (
+                <video
+                  src={course.videoUrl}
+                  className="w-full h-full"
+                  controls
+                  poster={course.thumbnailUrl}
+                />
+              )
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-white">No video available</div>
+            )}
           </div>
 
           {/* Right Column - Assessment */}

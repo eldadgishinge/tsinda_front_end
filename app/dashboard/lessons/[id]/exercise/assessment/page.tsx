@@ -8,6 +8,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { VideoPlayer } from "@/components/video-player"
+import { useParams, useRouter } from 'next/navigation'
+import { useCourse } from '@/hooks/use-courses'
 
 // Sample questions data
 const questions = [
@@ -24,7 +26,23 @@ const questions = [
   // Add more questions as needed
 ]
 
+function isVimeoUrl(url: string) {
+  const vimeoRegex = /^(https?:\/\/)?(www\.)?(vimeo\.com)\/.+/;
+  return vimeoRegex.test(url);
+}
+
+function getVimeoEmbedUrl(url: string) {
+  // Extract video ID from Vimeo URL
+  // Handle formats like: https://vimeo.com/1089134258
+  const videoId = url.split("vimeo.com/")[1]?.split("?")[0];
+  return `https://player.vimeo.com/video/${videoId}?title=0&byline=0&portrait=0&transparent=0&controls=1&pip=0&dnt=1`;
+}
+
 export default function AssessmentPage() {
+  const params = useParams();
+  const lessonId = params.id as string;
+  const { data: course, isLoading } = useCourse(lessonId);
+  const router = useRouter();
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState<string>("")
   const [answers, setAnswers] = useState<string[]>(Array(10).fill(""))
@@ -46,31 +64,48 @@ export default function AssessmentPage() {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="sticky top-0 z-10 flex items-center gap-4 border-b bg-white px-4 py-3">
-        <Link 
-          href="/dashboard/lessons"
+        <button
+          type="button"
+          onClick={() => router.back()}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="h-5 w-5" />
-          <span>CLOSE</span>
-        </Link>
-        <h1 className="text-xl font-semibold">Driving Lesson 101</h1>
+          <span>BACK</span>
+        </button>
+        <h1 className="text-xl font-semibold">{course?.title || "Lesson"}</h1>
       </div>
 
       {/* Main Content */}
       <div className="flex flex-col lg:flex-row h-[calc(100vh-57px)]">
-        {/* Left Side - Video */}
-        <div className="w-full lg:w-2/3 h-full bg-black">
-          <div className="h-full">
-            <VideoPlayer 
-              src="https://example.com/video.mp4"
-              poster="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Tsindacyane_design-kbHXDHkers9OV6WtZBSUGvsDAfpAam.png"
-            />
+        <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
+          {/* Left Column - Video */}
+          <div className="aspect-video bg-black flex items-center justify-center w-full">
+            {isLoading ? (
+              <div className="w-full h-full flex items-center justify-center text-white">Loading...</div>
+            ) : course?.videoUrl ? (
+              isVimeoUrl(course.videoUrl) ? (
+                <iframe
+                  src={getVimeoEmbedUrl(course.videoUrl)}
+                  className="w-full h-full border-0"
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowFullScreen
+                  title="Course Video"
+                />
+              ) : (
+                <video
+                  src={course.videoUrl}
+                  className="w-full h-full"
+                  controls
+                  poster={course.thumbnailUrl}
+                />
+              )
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-white">No video available</div>
+            )}
           </div>
-        </div>
 
-        {/* Right Side - Quiz */}
-        <div className="w-full lg:w-1/3 p-6 border-l">
-          <div className="max-w-md mx-auto">
+          {/* Right Column - Quiz */}
+          <div className="p-6 overflow-y-auto flex flex-col justify-center w-full">
             {/* Progress Bar and Question Counter */}
             <div className="flex items-center justify-between mb-6">
               <button className="p-2 hover:bg-gray-100 rounded-full">

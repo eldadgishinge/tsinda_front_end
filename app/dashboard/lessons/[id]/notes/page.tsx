@@ -1,14 +1,27 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Download } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useCourse } from "@/hooks/use-courses";
 import { useCheckEnrollment } from "@/hooks/use-enrollments";
 
+function isVimeoUrl(url: string) {
+  const vimeoRegex = /^(https?:\/\/)?(www\.)?(vimeo\.com)\/.+/;
+  return vimeoRegex.test(url);
+}
+
+function getVimeoEmbedUrl(url: string) {
+  // Extract video ID from Vimeo URL
+  // Handle formats like: https://vimeo.com/1089134258
+  const videoId = url.split("vimeo.com/")[1]?.split("?")[0];
+  return `https://player.vimeo.com/video/${videoId}?title=0&byline=0&portrait=0&transparent=0&controls=1&pip=0&dnt=1`;
+}
+
 export default function LessonNotesPage() {
   const params = useParams();
+  const router = useRouter();
   const { data: course, isLoading: isLoadingCourse } = useCourse(
     params.id as string
   );
@@ -75,49 +88,74 @@ export default function LessonNotesPage() {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="sticky top-0 z-10 flex items-center gap-4 border-b bg-white px-4 py-3">
-        <Link
-          href="/dashboard/lessons"
+        <button
+          type="button"
+          onClick={() => router.back()}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="h-5 w-5" />
-          <span>CLOSE</span>
-        </Link>
+          <span>BACK</span>
+        </button>
         <h1 className="text-xl font-semibold">{course.title}</h1>
       </div>
 
       {/* Main Content */}
       <div className="p-6">
-        <div className="max-w-md mx-auto space-y-6">
-          <h2 className="text-2xl font-bold text-center">Course Notes</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
+          {/* Left: Video */}
+          <div className="aspect-video bg-black flex items-center justify-center w-full max-h-[65vh]">
+            {course.videoUrl &&
+              (isVimeoUrl(course.videoUrl) ? (
+                <iframe
+                  src={getVimeoEmbedUrl(course.videoUrl)}
+                  className="w-full h-full border-0 object-contain"
+                  style={{ maxHeight: '65vh' }}
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowFullScreen
+                  title="Course Video"
+                />
+              ) : (
+                <video
+                  src={course.videoUrl}
+                  className="w-full h-full object-contain"
+                  style={{ maxHeight: '65vh' }}
+                  controls
+                  poster={course.thumbnailUrl}
+                />
+              ))}
+          </div>
 
-          {course.documentUrl ? (
-            <div className="flex flex-col space-y-4">
-              <Button
-                variant="outline"
-                className="w-full justify-between h-12 border-2 border-[#1045A1] text-[#1045A1] hover:bg-[#1045A1]/10"
-                onClick={() => window.open(course.documentUrl, "_blank")}
-              >
-                Preview Notes
-                <Download className="h-5 w-5" />
-              </Button>
-
-              <a
-                href={course.documentUrl}
-                download
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button className="w-full justify-between h-12 bg-[#1045A1] hover:bg-[#0D3A8B]">
-                  Download Notes
+          {/* Right: Notes */}
+          <div className="flex flex-col justify-center space-y-6">
+            <h2 className="text-2xl font-bold text-center">Course Notes</h2>
+            {course.documentUrl ? (
+              <div className="flex flex-col space-y-4">
+                <Button
+                  variant="outline"
+                  className="w-full justify-between h-10 border-2 border-[#1045A1] text-[#1045A1] hover:bg-[#1045A1]/10 text-sm"
+                  onClick={() => window.open(course.documentUrl, "_blank")}
+                >
+                  Preview Notes
                   <Download className="h-5 w-5" />
                 </Button>
-              </a>
-            </div>
-          ) : (
-            <div className="text-center text-gray-500">
-              <p>No notes available for this course.</p>
-            </div>
-          )}
+                <a
+                  href={course.documentUrl}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button className="w-full justify-between h-10 bg-[#1045A1] hover:bg-[#0D3A8B] text-sm">
+                    Download Notes
+                    <Download className="h-5 w-5" />
+                  </Button>
+                </a>
+              </div>
+            ) : (
+              <div className="text-center text-gray-500">
+                <p>No notes available for this course.</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
