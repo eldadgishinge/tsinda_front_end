@@ -6,21 +6,16 @@ import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useCourse } from "@/hooks/use-courses"
 
-function isYouTubeUrl(url: string) {
-  const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
-  return youtubeRegex.test(url);
+function isVimeoUrl(url: string) {
+  const vimeoRegex = /^(https?:\/\/)?(www\.)?(vimeo\.com)\/.+/;
+  return vimeoRegex.test(url);
 }
 
-function getYouTubeEmbedUrl(url: string) {
-  // Handle youtu.be URLs
-  if (url.includes("youtu.be")) {
-    const videoId = url.split("youtu.be/")[1]?.split("?")[0];
-    return `https://www.youtube.com/embed/${videoId}`;
-  }
-
-  // Handle youtube.com URLs
-  const videoId = url.split("v=")[1]?.split("&")[0];
-  return `https://www.youtube.com/embed/${videoId}`;
+function getVimeoEmbedUrl(url: string) {
+  // Extract video ID from Vimeo URL
+  // Handle formats like: https://vimeo.com/1089134258
+  const videoId = url.split("vimeo.com/")[1]?.split("?")[0];
+  return `https://player.vimeo.com/video/${videoId}?title=0&byline=0&portrait=0&transparent=0&controls=1&pip=0&dnt=1`;
 }
 
 export default function LessonExercisePage() {
@@ -52,11 +47,11 @@ export default function LessonExercisePage() {
             {isLoading ? (
               <div className="w-full h-full flex items-center justify-center text-white">Loading...</div>
             ) : course?.videoUrl ? (
-              isYouTubeUrl(course.videoUrl) ? (
+              isVimeoUrl(course.videoUrl) ? (
                 <iframe
-                  src={getYouTubeEmbedUrl(course.videoUrl)}
+                  src={getVimeoEmbedUrl(course.videoUrl)}
                   className="w-full h-full border-0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="autoplay; fullscreen; picture-in-picture"
                   allowFullScreen
                   title="Course Video"
                 />
