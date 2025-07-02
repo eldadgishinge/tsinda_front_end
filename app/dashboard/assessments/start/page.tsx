@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import axios from "@/lib/axios";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
 
 // Separate component that uses useSearchParams
@@ -19,6 +19,9 @@ function AssessmentContent() {
   const [attemptId, setAttemptId] = useState<string>();
   const [isAttempting, setIsAttempting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [timeRemaining, setTimeRemaining] = useState<number>(0);
 
   const { data: exam, isLoading } = useQuery({
     queryKey: ["exam", examId],
@@ -36,6 +39,9 @@ function AssessmentContent() {
         examId,
       });
       setAttemptId(response.data._id);
+
+      // Set initial time remaining in seconds
+      setTimeRemaining(exam.duration * 60);
 
       // Request fullscreen
       const element = document.documentElement;
@@ -64,6 +70,43 @@ function AssessmentContent() {
       setIsSubmitting(false);
     }
   }, [attemptId, router]);
+
+  const handleAnswerSelect = async (questionId: string, selectedOption: number) => {
+    setAnswers(prev => ({ ...prev, [questionId]: selectedOption }));
+    
+    try {
+      await axios.post("/exam-attempts/submit-answer", {
+        attemptId,
+        questionId,
+        selectedOption,
+      });
+    } catch (error) {
+      console.error("Failed to submit answer:", error);
+      toast.error("Failed to save answer. Please try again.");
+    }
+  };
+
+  const goToNextQuestion = () => {
+    if (currentQuestionIndex < exam.questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
+  };
+
+  const goToPreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    }
+  };
+
+  const isLastQuestion = currentQuestionIndex === exam?.questions.length - 1;
+  const isFirstQuestion = currentQuestionIndex === 0;
+
+  // Format time remaining
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
 
   // Handle fullscreen change
   useEffect(() => {
@@ -96,6 +139,30 @@ function AssessmentContent() {
     };
   }, [hasStarted, submitExam]);
 
+  // Countdown timer
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (hasStarted && timeRemaining > 0) {
+      interval = setInterval(() => {
+        setTimeRemaining(prev => {
+          if (prev <= 1) {
+            // Time's up, submit exam
+            submitExam();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [hasStarted, timeRemaining, submitExam]);
+
   // Submit on unmount if exam is still ongoing
   useEffect(() => {
     return () => {
@@ -122,71 +189,129 @@ function AssessmentContent() {
   }
 
   if (hasStarted) {
+    const currentQuestion = exam.questions[currentQuestionIndex];
+    const selectedAnswer = answers[currentQuestion._id];
+
     return (
       <div className="p-6 max-w-4xl mx-auto">
+        {/* Header with progress */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold">{exam.title}</h1>
-          <div className="text-sm text-gray-500">
-            Time Remaining: {exam.duration} minutes
+          <div className="flex items-center space-x-4">
+            <div className="text-sm text-gray-500">
+              Question {currentQuestionIndex + 1} of {exam.questions.length}
+            </div>
+            <div className={`text-sm font-mono ${
+              timeRemaining <= 300 ? 'text-red-600 font-bold' : 'text-gray-500'
+            }`}>
+              Time Remaining: {formatTime(timeRemaining)}
+            </div>
           </div>
         </div>
 
-        <div className="space-y-8">
-          {exam.questions.map((question: any, index: number) => (
-            <Card key={question._id} className="p-6">
-              <h3 className="text-lg font-medium mb-4">
-                {index + 1}. {question.text}
-              </h3>
-              {question.imageUrl && (
-                <img
-                  src={question.imageUrl}
-                  alt="Question"
-                  className="mb-4 rounded-lg"
-                />
-              )}
-              <div className="space-y-2">
-                {question.answerOptions.map(
-                  (option: any, optionIndex: number) => (
-                    <label
-                      key={optionIndex}
-                      className="flex items-center space-x-3 p-3 rounded-lg border hover:border-[#1045A1] cursor-pointer"
-                    >
-                      <input
-                        type="radio"
-                        name={`question-${question._id}`}
-                        value={optionIndex}
-                        className="text-[#1045A1]"
-                        onChange={() => {
-                          // Submit answer
-                          axios.post("/exam-attempts/submit-answer", {
-                            attemptId,
-                            questionId: question._id,
-                            selectedOption: optionIndex,
-                          });
-                        }}
-                      />
-                      <span>{option.text}</span>
-                    </label>
-                  )
-                )}
-              </div>
-            </Card>
-          ))}
+        {/* Progress bar */}
+        <div className="w-full bg-gray-200 rounded-full h-2 mb-8">
+          <div 
+            className="bg-[#1045A1] h-2 rounded-full transition-all duration-300"
+            style={{ width: `${((currentQuestionIndex + 1) / exam.questions.length) * 100}%` }}
+          ></div>
+        </div>
 
-          <Button
-            className="w-full bg-[#1045A1] hover:bg-[#0D3A8B]"
-            onClick={submitExam}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Submitting...
-              </>
-            ) : (
-              "Submit Exam"
+        {/* Question */}
+        <Card className="p-6 mb-8">
+          <h3 className="text-lg font-medium mb-4">
+            {currentQuestionIndex + 1}. {currentQuestion.text}
+          </h3>
+          {currentQuestion.imageUrl && (
+            <img
+              src={currentQuestion.imageUrl}
+              alt="Question"
+              className="mb-4 rounded-lg max-w-full"
+            />
+          )}
+          <div className="space-y-2">
+            {currentQuestion.answerOptions.map(
+              (option: any, optionIndex: number) => (
+                <label
+                  key={optionIndex}
+                  className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                    selectedAnswer === optionIndex 
+                      ? 'border-[#1045A1] bg-blue-50' 
+                      : 'hover:border-[#1045A1]'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name={`question-${currentQuestion._id}`}
+                    value={optionIndex}
+                    checked={selectedAnswer === optionIndex}
+                    className="text-[#1045A1]"
+                    onChange={() => handleAnswerSelect(currentQuestion._id, optionIndex)}
+                  />
+                  <span>{option.text}</span>
+                </label>
+              )
             )}
+          </div>
+        </Card>
+
+        {/* Navigation buttons */}
+        <div className="flex justify-between items-center">
+          <Button
+            variant="outline"
+            onClick={goToPreviousQuestion}
+            disabled={isFirstQuestion}
+            className="flex items-center space-x-2"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Previous
           </Button>
+
+          <div className="flex items-center space-x-2">
+            {!isLastQuestion ? (
+              <Button
+                className="bg-[#1045A1] hover:bg-[#0D3A8B] flex items-center space-x-2"
+                onClick={goToNextQuestion}
+                disabled={selectedAnswer === undefined}
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                className="bg-[#1045A1] hover:bg-[#0D3A8B]"
+                onClick={submitExam}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit Exam"
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Question navigation dots */}
+        <div className="flex justify-center mt-8 space-x-2">
+          {exam.questions.map((_: any, index: number) => (
+            <button
+              key={index}
+              onClick={() => setCurrentQuestionIndex(index)}
+              className={`w-3 h-3 rounded-full transition-colors ${
+                index === currentQuestionIndex 
+                  ? 'bg-[#1045A1]' 
+                  : answers[exam.questions[index]._id] !== undefined 
+                    ? 'bg-green-500' 
+                    : 'bg-gray-300'
+              }`}
+              title={`Question ${index + 1}`}
+            />
+          ))}
         </div>
       </div>
     );
@@ -242,6 +367,8 @@ function AssessmentContent() {
                   <li>Changing tabs or applications will submit your exam</li>
                   <li>Make sure you have a stable internet connection</li>
                   <li>Ensure your device is fully charged or plugged in</li>
+                  <li>You can navigate between questions using Previous/Next buttons</li>
+                  <li>You must answer each question before proceeding</li>
                 </ul>
               </div>
             </div>
