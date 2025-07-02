@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
+import { useEffect } from "react"
 import axios from "@/lib/axios"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -11,6 +12,15 @@ import Link from "next/link"
 export default function AssessmentCompletedPage() {
   const params = useParams()
   const attemptId = params.id as string
+
+  // Exit fullscreen when component mounts
+  useEffect(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch((err) => {
+        console.log('Error exiting fullscreen:', err)
+      })
+    }
+  }, [])
 
   const { data: attempt, isLoading } = useQuery({
     queryKey: ["exam-attempt", attemptId],
