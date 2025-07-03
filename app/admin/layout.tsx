@@ -4,9 +4,11 @@ import { Bell } from "lucide-react";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { UserNav } from "@/components/user-nav";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import type React from "react";
+import { useUser } from "@/hooks/use-auth";
+import { useEffect } from "react";
 
 interface NavItem {
   href: string;
@@ -141,7 +143,27 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { data: user, isLoading } = useUser();
+  const router = useRouter();
   const pathname = usePathname();
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (!user) {
+        router.replace("/login");
+      } else if (user.role !== "admin") {
+        router.replace("/dashboard");
+      }
+    }
+  }, [user, isLoading, router]);
+
+  if (isLoading || !user || user.role !== "admin") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <span className="text-lg text-gray-500">Checking permissions...</span>
+      </div>
+    );
+  }
 
   const isActive = (href: string) => {
     if (href === "/admin") {

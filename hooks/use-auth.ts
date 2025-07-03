@@ -143,3 +143,52 @@ export function useUser() {
     },
   });
 }
+
+export function useLogout() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await axios.post("/auth/logout");
+      return response.data;
+    },
+    onSuccess: () => {
+      // Clear all stored data
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Clear React Query cache
+      queryClient.removeQueries({ queryKey: ["user"] });
+      queryClient.clear();
+      
+      // Clear browser history and replace current page
+      if (typeof window !== 'undefined') {
+        window.history.replaceState(null, '', '/login');
+        window.history.pushState(null, '', '/login');
+        window.history.go(1);
+      }
+      
+      toast.success("Logged out successfully");
+      router.replace("/login");
+    },
+    onError: (error: any) => {
+      // Even if the API call fails, clear local data
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      queryClient.removeQueries({ queryKey: ["user"] });
+      queryClient.clear();
+      
+      // Clear browser history and replace current page
+      if (typeof window !== 'undefined') {
+        window.history.replaceState(null, '', '/login');
+        window.history.pushState(null, '', '/login');
+        window.history.go(1);
+      }
+      
+      toast.success("Logged out successfully");
+      router.replace("/login");
+    },
+  });
+}

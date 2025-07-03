@@ -48,3 +48,21 @@ export function useDeleteCategory() {
     },
   })
 }
+
+export function useUpdateCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ categoryId, categoryName, description }: { categoryId: string; categoryName: string; description: string }) => {
+      const response = await axios.put(`/categories/${categoryId}`, { categoryName, description });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      toast.success("Category updated successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to update category");
+    },
+  });
+}

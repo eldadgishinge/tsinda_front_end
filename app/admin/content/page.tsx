@@ -7,9 +7,11 @@ import { AddCourseDialog } from "@/components/add-course-dialog";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useCourses, useDeleteCourse } from "@/hooks/use-courses";
+import { useCourses, useDeleteCourse, useUpdateCourse } from "@/hooks/use-courses";
 import { useCategories } from "@/hooks/use-categories";
 import { useUsers } from "@/hooks/use-users";
+import { EditCourseDialog } from "@/components/edit-course-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function ContentManagementPage() {
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -17,6 +19,11 @@ export default function ContentManagementPage() {
   const { data: categories } = useCategories();
   const { data: instructors } = useUsers();
   const { mutate: deleteCourse, isPending: isDeleting } = useDeleteCourse();
+  const { mutate: updateCourse, isPending: isSaving } = useUpdateCourse();
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState(null);
 
   return (
     <div className="space-y-6">
@@ -68,13 +75,23 @@ export default function ContentManagementPage() {
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
-                        <Button variant="ghost" size="icon">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedCourse(course);
+                            setShowEditDialog(true);
+                          }}
+                        >
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => deleteCourse(course._id)}
+                          onClick={() => {
+                            setCourseToDelete(course);
+                            setShowDeleteDialog(true);
+                          }}
                           isLoading={isDeleting}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -115,6 +132,55 @@ export default function ContentManagementPage() {
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
       />
+
+      <EditCourseDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        course={selectedCourse}
+        categories={categories || []}
+        instructors={instructors || []}
+        isSaving={isSaving}
+        onSubmit={(data) => {
+          if (!selectedCourse) return;
+          updateCourse(
+            { courseId: selectedCourse._id, ...data },
+            {
+              onSuccess: () => setShowEditDialog(false),
+            }
+          );
+        }}
+      />
+
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold text-red-600">Delete Course</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-gray-700 mb-4">
+              Are you sure you want to delete the course <span className="font-semibold">{courseToDelete?.title}</span>?<br/>
+              This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                isLoading={isDeleting}
+                onClick={() => {
+                  if (!courseToDelete) return;
+                  deleteCourse(courseToDelete._id, {
+                    onSuccess: () => setShowDeleteDialog(false),
+                  });
+                }}
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

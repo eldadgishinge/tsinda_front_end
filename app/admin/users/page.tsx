@@ -6,6 +6,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import { AddUserDialog } from "@/components/add-user-dialog";
 import { UserActionsDialog } from "@/components/user-actions-dialog";
+import { EditUserDialog } from "@/components/edit-user-dialog";
 import { useUsers, useDeleteUser, useUpdateUser } from "@/hooks/use-users";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { User } from "@/lib/validations/auth";
@@ -151,8 +152,7 @@ export default function UsersPage() {
         onOpenChange={setShowViewDialog}
       />
 
-      <UserActionsDialog
-        type="edit"
+      <EditUserDialog
         user={selectedUser}
         open={showEditDialog}
         onOpenChange={setShowEditDialog}

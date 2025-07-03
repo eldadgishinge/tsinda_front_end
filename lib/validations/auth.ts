@@ -50,6 +50,22 @@ export const createUserSchema = z.object({
   role: z.enum(["instructor", "admin"]),
 });
 
+export const updateUserSchema = z.object({
+  name: z.string().min(3, "Name must be at least 3 characters"),
+  email: z.string().email("Please enter a valid email"),
+  phoneNumber: z
+    .string()
+    .regex(/^\+?[0-9]{10,15}$/, "Please enter a valid phone number"),
+  password: z
+    .string()
+    .transform((val) => (val === "" ? undefined : val))
+    .optional()
+    .refine((val) => val === undefined || val.length >= 6, {
+      message: "Password must be at least 6 characters",
+    }),
+  role: z.enum(["instructor", "admin"]),
+});
+
 export interface User {
   _id: string
   name: string

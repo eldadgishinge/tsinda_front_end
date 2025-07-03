@@ -9,8 +9,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { User, Settings, LogOut } from 'lucide-react'
 import Link from "next/link"
+import { useLogout } from "@/hooks/use-auth"
 
 export function UserNav() {
+  const logout = useLogout();
+
+  const handleLogout = () => {
+    logout.mutate();
+  };
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -36,9 +42,13 @@ export function UserNav() {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="flex items-center text-[#1045A1] focus:text-[#1045A1]"> {/* Update applied here */}
+        <DropdownMenuItem 
+          className="flex items-center text-[#1045A1] focus:text-[#1045A1] cursor-pointer"
+          onClick={handleLogout}
+          disabled={logout.isPending}
+        >
           <LogOut className="mr-2 h-4 w-4" />
-          <span>Sign Out</span>
+          <span>{logout.isPending ? "Signing out..." : "Sign Out"}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

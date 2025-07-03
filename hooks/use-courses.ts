@@ -66,3 +66,20 @@ export function useDeleteCourse() {
     },
   });
 }
+
+export function useUpdateCourse() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ courseId, ...data }: { courseId: string; [key: string]: any }) => {
+      const response = await axios.put(`/courses/${courseId}`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["courses"] });
+      toast.success("Course updated successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to update course");
+    },
+  });
+}

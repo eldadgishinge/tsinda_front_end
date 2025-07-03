@@ -34,6 +34,8 @@ export default function DashboardPage() {
   // Get number of students learning this week
   const studentsLearningThisWeek = allEnrollments?.length || 0;
 
+  console.log("User Enrollments:", activeEnrollments);
+
   return (
     <div className="space-y-8">
       {/* Continue Learning Section */}

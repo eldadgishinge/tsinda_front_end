@@ -118,52 +118,52 @@ export function AddQuestionDialog({
 
             <div className="space-y-4">
               <FormLabel>Answer Options</FormLabel>
-              {form.watch("answerOptions").map((_, index) => (
-                <div key={index} className="flex gap-4">
-                  <FormField
-                    control={form.control}
-                    name={`answerOptions.${index}.text`}
-                    render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder={`Option ${index + 1}`}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`answerOptions.${index}.isCorrect`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={(value) => {
-                              // Uncheck all other options
-                              form.setValue(
-                                "answerOptions",
-                                form
-                                  .getValues("answerOptions")
-                                  .map((option, i) => ({
-                                    ...option,
-                                    isCorrect: i === index,
-                                  }))
-                              );
-                            }}
-                            value={field.value ? "correct" : undefined}
-                          >
-                            <RadioGroupItem value="correct" />
-                          </RadioGroup>
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              ))}
+              <RadioGroup
+                value={String(form.watch("answerOptions").findIndex(opt => opt.isCorrect))}
+                onValueChange={val => {
+                  const idx = Number(val);
+                  form.setValue(
+                    "answerOptions",
+                    form.getValues("answerOptions").map((option, i) => ({
+                      ...option,
+                      isCorrect: i === idx,
+                    }))
+                  );
+                }}
+                className="space-y-2"
+              >
+                {form.watch("answerOptions").map((_, index) => {
+                  const isSelected = form.watch("answerOptions")[index].isCorrect;
+                  return (
+                    <div
+                      key={index}
+                      className={`flex gap-4 items-center rounded-lg px-2 py-1 transition-colors border ${
+                        isSelected ? "border-green-500 bg-green-50" : "border-gray-200"
+                      }`}
+                    >
+                      <FormField
+                        control={form.control}
+                        name={`answerOptions.${index}.text`}
+                        render={({ field }) => (
+                          <FormItem className="flex-1">
+                            <FormControl>
+                              <Input
+                                {...field}
+                                placeholder={`Option ${index + 1}`}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <RadioGroupItem
+                        value={String(index)}
+                        className={isSelected ? "border-green-500 text-green-600" : ""}
+                      />
+                    </div>
+                  );
+                })}
+              </RadioGroup>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

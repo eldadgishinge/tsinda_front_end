@@ -9,6 +9,7 @@ import { QuestionActionsDialog } from "@/components/question-actions-dialog";
 import { useQuestions, useDeleteQuestion } from "@/hooks/use-questions";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { Question } from "@/lib/validations/question";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function QuestionsPage() {
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -41,7 +42,7 @@ export default function QuestionsPage() {
       header: "Difficulty",
       cell: ({ row }) => (
         <span
-          className={`px-2 py-1 rounded-full text-xs ${
+          className={`px-2 py-1 rounded-full text-xs font-semibold shadow-sm ${
             row.original.difficulty === "Easy"
               ? "bg-green-100 text-green-700"
               : row.original.difficulty === "Medium"
@@ -58,7 +59,7 @@ export default function QuestionsPage() {
       header: "Status",
       cell: ({ row }) => (
         <span
-          className={`px-2 py-1 rounded-full text-xs ${
+          className={`px-2 py-1 rounded-full text-xs font-semibold shadow-sm ${
             row.original.status === "Active"
               ? "bg-green-100 text-green-700"
               : "bg-gray-100 text-gray-700"
@@ -71,70 +72,96 @@ export default function QuestionsPage() {
     {
       id: "actions",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              setSelectedQuestion(row.original);
-              setShowViewDialog(true);
-            }}
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              setSelectedQuestion(row.original);
-              setShowEditDialog(true);
-            }}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              setSelectedQuestion(row.original);
-              setShowDeleteDialog(true);
-            }}
-            disabled={isDeleting}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
+        <TooltipProvider>
+          <div className="flex items-center gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="hover:bg-blue-100"
+                  onClick={() => {
+                    setSelectedQuestion(row.original);
+                    setShowViewDialog(true);
+                  }}
+                >
+                  <Eye className="h-4 w-4 text-blue-600" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>View</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="hover:bg-green-100"
+                  onClick={() => {
+                    setSelectedQuestion(row.original);
+                    setShowEditDialog(true);
+                  }}
+                >
+                  <Pencil className="h-4 w-4 text-green-600" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Edit</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="hover:bg-red-100"
+                  onClick={() => {
+                    setSelectedQuestion(row.original);
+                    setShowDeleteDialog(true);
+                  }}
+                  disabled={isDeleting}
+                >
+                  <Trash2 className="h-4 w-4 text-red-600" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Delete</TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
       ),
     },
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 bg-gray-50 min-h-screen pb-10">
+      <div className="flex justify-between items-center sticky top-0 z-10 bg-gray-50/80 py-4 px-2 md:px-0">
         <h1 className="text-2xl font-bold">Question Management</h1>
         <Button
-          className="bg-[#1045A1] hover:bg-[#0D3A8B]"
+          className="bg-[#1045A1] hover:bg-[#0D3A8B] shadow-lg px-6 py-2 text-base font-semibold"
           onClick={() => setShowAddDialog(true)}
         >
           ADD QUESTION
         </Button>
       </div>
 
-      <div className="border rounded-lg bg-white">
-        <div className="p-4 flex items-center justify-between border-b">
-          <div className="flex items-center gap-2">
-            <h2 className="font-semibold">Current Questions</h2>
-            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-              {questions?.length || 0} questions
-            </span>
+      <div className="max-w-5xl mx-auto">
+        <div className="rounded-2xl shadow-lg border bg-white overflow-x-auto">
+          <div className="p-4 flex items-center justify-between border-b bg-gray-50 rounded-t-2xl sticky top-0 z-10">
+            <div className="flex items-center gap-2">
+              <h2 className="font-semibold text-lg">Current Questions</h2>
+              <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                {questions?.length || 0} questions
+              </span>
+            </div>
           </div>
-        </div>
 
-        <DataTable
-          columns={columns}
-          data={questions || []}
-          isLoading={isLoading}
-        />
+          <DataTable
+            columns={columns}
+            data={questions || []}
+            isLoading={isLoading}
+            rowClassName="hover:bg-blue-50 transition-colors"
+            cellClassName="align-middle"
+            headerClassName="bg-gray-100 text-gray-700 font-semibold text-sm"
+            zebraStripe
+          />
+        </div>
       </div>
 
       <AddQuestionDialog open={showAddDialog} onOpenChange={setShowAddDialog} />

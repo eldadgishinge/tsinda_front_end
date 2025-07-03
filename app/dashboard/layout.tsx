@@ -1,3 +1,5 @@
+"use client";
+
 import { Bell } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -7,12 +9,36 @@ import { LanguageProvider } from "@/contexts/language-context";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { SidebarNavItem } from "@/components/sidebar-nav-item";
 import { HelpMenu } from "@/components/help-menu";
+import { useUser } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { data: user, isLoading } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (!user) {
+        router.replace("/login");
+      } else if (user.role !== "user") {
+        router.replace("/admin");
+      }
+    }
+  }, [user, isLoading, router]);
+
+  if (isLoading || !user || user.role !== "user") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <span className="text-lg text-gray-500">Checking permissions...</span>
+      </div>
+    );
+  }
+
   return (
     <LanguageProvider>
       <div className="min-h-screen bg-gray-50">
