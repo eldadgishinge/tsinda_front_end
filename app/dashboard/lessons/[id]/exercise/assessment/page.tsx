@@ -31,11 +31,22 @@ function isVimeoUrl(url: string) {
   return vimeoRegex.test(url);
 }
 
+function isMuxUrl(url: string) {
+  const muxRegex = /^(https?:\/\/)?(www\.)?(player\.mux\.com)\/.+/;
+  return muxRegex.test(url);
+}
+
 function getVimeoEmbedUrl(url: string) {
   // Extract video ID from Vimeo URL
   // Handle formats like: https://vimeo.com/1089134258
   const videoId = url.split("vimeo.com/")[1]?.split("?")[0];
   return `https://player.vimeo.com/video/${videoId}?title=0&byline=0&portrait=0&transparent=0&controls=1&pip=0&dnt=1`;
+}
+
+function getMuxEmbedUrl(url: string) {
+  // For Mux URLs, we can use them directly as they are already embed URLs
+  // Handle formats like: https://player.mux.com/7YaPTDv7oIZSpOUYagZ00frWuHAJ2NochiKjZYn01UORk
+  return url;
 }
 
 export default function AssessmentPage() {
@@ -86,6 +97,14 @@ export default function AssessmentPage() {
               isVimeoUrl(course.videoUrl) ? (
                 <iframe
                   src={getVimeoEmbedUrl(course.videoUrl)}
+                  className="w-full h-full border-0"
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowFullScreen
+                  title="Course Video"
+                />
+              ) : isMuxUrl(course.videoUrl) ? (
+                <iframe
+                  src={getMuxEmbedUrl(course.videoUrl)}
                   className="w-full h-full border-0"
                   allow="autoplay; fullscreen; picture-in-picture"
                   allowFullScreen
