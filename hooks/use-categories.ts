@@ -17,7 +17,7 @@ export function useCreateCategory() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (data: { categoryName: string; description: string }) => {
+    mutationFn: async (data: { categoryName: string; description: string; language: "ENG" | "KIN" }) => {
       const response = await axios.post("/categories", data)
       return response.data
     },
@@ -53,8 +53,8 @@ export function useUpdateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ categoryId, categoryName, description }: { categoryId: string; categoryName: string; description: string }) => {
-      const response = await axios.put(`/categories/${categoryId}`, { categoryName, description });
+    mutationFn: async ({ categoryId, categoryName, description, language }: { categoryId: string; categoryName: string; description: string; language: "ENG" | "KIN" }) => {
+      const response = await axios.put(`/categories/${categoryId}`, { categoryName, description, language });
       return response.data;
     },
     onSuccess: () => {

@@ -9,6 +9,13 @@ import { useCategories, useDeleteCategory, useUpdateCategory } from "@/hooks/use
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Category } from "@/lib/validations/category"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export default function CategoriesPage() {
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -28,6 +35,14 @@ export default function CategoriesPage() {
     {
       accessorKey: "description",
       header: "Description",
+    },
+    {
+      accessorKey: "language",
+      header: "Language",
+      cell: ({ row }) => {
+        const language = row.original.language
+        return language === "ENG" ? "English" : "Kinyarwanda"
+      },
     },
     {
       accessorKey: "createdAt",
@@ -75,12 +90,13 @@ export default function CategoriesPage() {
   ]
 
   // Edit form state
-  const [editForm, setEditForm] = useState({ categoryName: "", description: "" })
+  const [editForm, setEditForm] = useState({ categoryName: "", description: "", language: "ENG" as "ENG" | "KIN" })
   useEffect(() => {
     if (selectedCategory && showEditDialog) {
       setEditForm({
         categoryName: selectedCategory.categoryName,
         description: selectedCategory.description,
+        language: selectedCategory.language,
       })
     }
   }, [selectedCategory, showEditDialog])
@@ -92,6 +108,7 @@ export default function CategoriesPage() {
       categoryId: selectedCategory._id,
       categoryName: editForm.categoryName,
       description: editForm.description,
+      language: editForm.language,
     }, {
       onSuccess: () => setShowEditDialog(false),
     })
@@ -152,6 +169,12 @@ export default function CategoriesPage() {
                 <span className="text-gray-800">{selectedCategory.description}</span>
               </div>
               <div className="flex flex-col gap-1">
+                <span className="text-xs text-gray-500 font-medium">Language</span>
+                <span className="inline-block px-2 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">
+                  {selectedCategory.language === "ENG" ? "English" : "Kinyarwanda"}
+                </span>
+              </div>
+              <div className="flex flex-col gap-1">
                 <span className="text-xs text-gray-500 font-medium">Created At</span>
                 <span className="inline-block px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
                   {new Date(selectedCategory.createdAt).toLocaleString()}
@@ -189,6 +212,21 @@ export default function CategoriesPage() {
                   required
                   minLength={10}
                 />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Language</label>
+                <Select
+                  value={editForm.language}
+                  onValueChange={(value: "ENG" | "KIN") => setEditForm(f => ({ ...f, language: value }))}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ENG">English</SelectItem>
+                    <SelectItem value="KIN">Kinyarwanda</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" type="button" onClick={() => setShowEditDialog(false)}>

@@ -13,6 +13,17 @@ export function useQuestions() {
   });
 }
 
+export function useRandomQuestions(count: number, language: "ENG" | "KIN") {
+  return useQuery({
+    queryKey: ["random-questions", count, language],
+    queryFn: async () => {
+      const response = await axios.get(`/questions/random?count=${count}&language=${language}`);
+      return response.data as Question[];
+    },
+    enabled: count > 0 && !!language,
+  });
+}
+
 export function useCreateQuestion() {
   const queryClient = useQueryClient();
 

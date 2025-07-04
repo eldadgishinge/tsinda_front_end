@@ -1,12 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useExams } from "@/hooks/use-exams";
 import { useCategories } from "@/hooks/use-categories";
-import { useCreateRandomExam } from "@/hooks/use-exams";
+import axios from "@/lib/axios";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -15,43 +22,123 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import toast from "react-hot-toast";
 
 export default function AssessmentsPage() {
   const [activeTab, setActiveTab] = useState<"category" | "general">(
     "category"
   );
-  const [showQuestionDialog, setShowQuestionDialog] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>();
-  const [questionCount, setQuestionCount] = useState<"10" | "25">("10");
+  const [languageFilter, setLanguageFilter] = useState<"all" | "ENG" | "KIN">("all");
+  const [showCustomDialog, setShowCustomDialog] = useState(false);
+  const [questionCount, setQuestionCount] = useState<"10" | "25" | "50">("10");
+  const [customLanguage, setCustomLanguage] = useState<"ENG" | "KIN">("ENG");
+  const [isStartingCustom, setIsStartingCustom] = useState(false);
+  const [randomQuestions, setRandomQuestions] = useState<any[]>([]);
+  const [isLoadingRandom, setIsLoadingRandom] = useState(false);
 
   const router = useRouter();
   const { data: exams, isLoading: isLoadingExams } = useExams();
   const { data: categories, isLoading: isLoadingCategories } = useCategories();
-  const { mutateAsync: createRandomExam, isPending: isCreating } =
-    useCreateRandomExam();
 
-  const handleStartAssessment = async () => {
-    if (!selectedCategory) return;
+  // Filter categories based on language selection
+  const filteredCategories = categories?.filter((category) => {
+    if (languageFilter === "all") return true;
+    return category.language === languageFilter;
+  });
 
+  // Filter exams by selected category
+  const filteredExams = exams?.filter((exam) => {
+    if (!selectedCategory) return false;
+    return exam.category._id === selectedCategory && exam.status === "Published";
+  });
+
+  const handleStartCustomAssessment = async () => {
+    setIsStartingCustom(true);
+    setIsLoadingRandom(true);
+    setShowCustomDialog(false);
+    toast.success(`Preparing your ${questionCount}-question assessment in ${customLanguage === "ENG" ? "English" : "Kinyarwanda"}...`);
+    
     try {
-      const result = await createRandomExam({
-        title: `${
-          categories?.find((c) => c._id === selectedCategory)?.categoryName
-        } Assessment`,
-        description: "Category assessment",
-        duration: parseInt(questionCount),
-        passingScore: 70,
-        questionCount: parseInt(questionCount),
-        category: selectedCategory,
+      const response = await axios.get(`/questions/random?count=${questionCount}&language=${customLanguage}`, {
+        timeout: 10000 // 10 second timeout
       });
-
-      if (result.exam?._id) {
-        router.push(`/dashboard/assessments/start?id=${result.exam._id}`);
-      }
-    } catch (error) {
-      console.error("Error creating exam:", error);
+      window.sessionStorage.setItem('lastRandomApiResponse', JSON.stringify(response.data));
+      const questions = response.data.questions || [];
+      setRandomQuestions(questions);
+    } catch (error: any) {
+      toast.error(`Failed to load questions: ${error.response?.data?.message || error.message}`);
+      setIsStartingCustom(false);
+      setIsLoadingRandom(false);
     }
   };
+
+  // useEffect to handle navigation when random questions are loaded
+  useEffect(() => {
+    if (isStartingCustom && randomQuestions && randomQuestions.length > 0) {
+      
+      // Get duration from the last random API response if available
+      let duration = parseInt(questionCount);
+      try {
+        const lastRandomApi = window.sessionStorage.getItem('lastRandomApiResponse');
+        if (lastRandomApi) {
+          const parsed = JSON.parse(lastRandomApi);
+          if (parsed.duration) duration = parsed.duration;
+        }
+      } catch {}
+
+      // Create a temporary exam object with the random questions
+      const tempExam = {
+        _id: `temp-${Date.now()}`,
+        title: `General Assessment (${questionCount} Questions) - ${customLanguage === "ENG" ? "English" : "Kinyarwanda"}`,
+        description: `Custom general assessment with mixed questions in ${customLanguage === "ENG" ? "English" : "Kinyarwanda"}`,
+        duration,
+        passingScore: 70,
+        questions: randomQuestions,
+        category: { _id: "", categoryName: "General" },
+        language: customLanguage === "ENG" ? "English" : "Kinyarwanda",
+        status: "Published" as const,
+        createdAt: new Date().toISOString(),
+      };
+
+      // Store the exam in sessionStorage for the assessment page
+      sessionStorage.setItem("tempExam", JSON.stringify(tempExam));
+      
+      // Reset the state
+      setIsStartingCustom(false);
+      setIsLoadingRandom(false);
+      
+      // Navigate to the assessment immediately
+      router.push(`/dashboard/assessments/start?id=${tempExam._id}`);
+    }
+  }, [isStartingCustom, randomQuestions, questionCount, customLanguage, router]);
+
+  // Show loading state when fetching random questions
+  if (isStartingCustom && isLoadingRandom) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold mb-2">Assessments</h1>
+          <p className="text-gray-600">
+            Discover your skill level and receive customized learning
+            recommendations.
+          </p>
+        </div>
+
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 bg-transparent rounded-full border-2 border-[#1045A1] border-b-transparent animate-spin mx-auto"></div>
+            <div>
+              <h3 className="text-lg font-semibold text-[#1045A1]">Preparing Your Assessment</h3>
+              <p className="text-gray-600">
+                Loading {questionCount} questions in {customLanguage === "ENG" ? "English" : "Kinyarwanda"}...
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoadingExams || isLoadingCategories) {
     return (
@@ -90,7 +177,10 @@ export default function AssessmentsPage() {
                 ? "bg-[#E6EDF7] text-[#1045A1] hover:bg-blue-100"
                 : ""
             }
-            onClick={() => setActiveTab("category")}
+            onClick={() => {
+              setActiveTab("category");
+              setSelectedCategory(undefined);
+            }}
           >
             By Category
           </Button>
@@ -106,102 +196,253 @@ export default function AssessmentsPage() {
             General
           </Button>
         </div>
+
+        {/* Language Filter - Only show when "By Category" tab is active */}
+        {activeTab === "category" && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">Language:</span>
+            <Select
+              value={languageFilter}
+              onValueChange={(value: "all" | "ENG" | "KIN") => setLanguageFilter(value)}
+            >
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Select language" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="ENG">English</SelectItem>
+                <SelectItem value="KIN">Kinyarwanda</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       {activeTab === "category" ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categories?.map((category) => (
-            <div
-              key={category._id}
-              className="border rounded-lg overflow-hidden hover:border-[#1045A1] transition-colors cursor-pointer"
-              onClick={() => {
-                setSelectedCategory(category._id);
-                setShowQuestionDialog(true);
-              }}
-            >
-              <div className="p-6 space-y-4">
-                <h3 className="font-semibold">{category.categoryName}</h3>
-                <p className="text-sm text-gray-600">{category.description}</p>
-                <div className="flex items-center justify-between text-sm text-gray-500">
-                  <span>Multiple Choice</span>
-                  <span>10-25 Questions</span>
-                </div>
-              </div>
+        <div>
+          {!selectedCategory ? (
+            // Show categories grid
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredCategories?.map((category) => {
+                // Count published exams for this category
+                const categoryExams = exams?.filter(
+                  (exam) => exam.category._id === category._id && exam.status === "Published"
+                ) || [];
+                
+                return (
+                  <div
+                    key={category._id}
+                    className="border rounded-lg overflow-hidden hover:border-[#1045A1] transition-colors cursor-pointer"
+                    onClick={() => setSelectedCategory(category._id)}
+                  >
+                    <div className="p-6 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold">{category.categoryName}</h3>
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          category.language === "ENG" 
+                            ? "bg-blue-100 text-blue-700" 
+                            : "bg-purple-100 text-purple-700"
+                        }`}>
+                          {category.language === "ENG" ? "English" : "Kinyarwanda"}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600">{category.description}</p>
+                      <div className="flex items-center justify-between text-sm text-gray-500">
+                        <span>{categoryExams.length} Available Exams</span>
+                        <span>Click to view</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          ))}
+          ) : (
+            // Show exams for selected category
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 mb-6">
+                <Button
+                  variant="outline"
+                  onClick={() => setSelectedCategory(undefined)}
+                  className="flex items-center gap-2"
+                >
+                  ← Back to Categories
+                </Button>
+                <h2 className="text-xl font-semibold">
+                  {categories?.find((c) => c._id === selectedCategory)?.categoryName} Exams
+                </h2>
+              </div>
+              
+              {filteredExams && filteredExams.length > 0 ? (
+                filteredExams.map((exam) => (
+                  <Link
+                    key={exam._id}
+                    href={`/dashboard/assessments/start?id=${exam._id}`}
+                    className="block border rounded-lg p-6 hover:border-[#1045A1] transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold mb-1">{exam.title}</h3>
+                        <p className="text-sm text-gray-600">{exam.description}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-medium">
+                          {exam.questions.length} Questions
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {exam.duration} minutes
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                <div className="text-center py-12 border rounded-lg bg-gray-50">
+                  <p className="text-gray-500 mb-2">No exams available for this category</p>
+                  <p className="text-sm text-gray-400">Check back later for new assessments</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       ) : (
-        <div className="space-y-4">
-          {exams
-            ?.filter((exam) => exam.status === "Published")
-            ?.map((exam) => (
-              <Link
-                key={exam._id}
-                href={`/dashboard/assessments/start?id=${exam._id}`}
-                className="block border rounded-lg p-6 hover:border-[#1045A1] transition-colors"
+        <div className="space-y-6">
+          {/* Custom Assessment Option */}
+          <div className="border rounded-lg p-6 bg-gradient-to-r from-blue-50 to-purple-50">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold mb-1">Custom Assessment</h3>
+                <p className="text-sm text-gray-600">
+                  Create a personalized assessment with questions from all categories
+                </p>
+              </div>
+              <Button
+                onClick={() => setShowCustomDialog(true)}
+                className="bg-[#1045A1] hover:bg-[#0D3A8B]"
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold mb-1">{exam.title}</h3>
-                    <p className="text-sm text-gray-600">{exam.description}</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium">
-                      {exam.questions.length} Questions
+                Create Custom Assessment
+              </Button>
+            </div>
+          </div>
+
+          {/* Existing Exams */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Available Exams</h3>
+            <div className="space-y-4">
+              {exams
+                ?.filter((exam) => exam.status === "Published")
+                ?.map((exam) => (
+                  <Link
+                    key={exam._id}
+                    href={`/dashboard/assessments/start?id=${exam._id}`}
+                    className="block border rounded-lg p-6 hover:border-[#1045A1] transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold mb-1">{exam.title}</h3>
+                        <p className="text-sm text-gray-600">{exam.description}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-medium">
+                          {exam.questions.length} Questions
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {exam.duration} minutes
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-500">
-                      {exam.duration} minutes
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
+                  </Link>
+                ))}
+            </div>
+          </div>
         </div>
       )}
 
-      <Dialog open={showQuestionDialog} onOpenChange={setShowQuestionDialog}>
+      {/* Custom Assessment Dialog */}
+      <Dialog open={showCustomDialog} onOpenChange={setShowCustomDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Choose Number of Questions</DialogTitle>
+            <DialogTitle>Create Custom Assessment</DialogTitle>
             <DialogDescription>
-              Select how many questions you want to answer. More questions will
-              give you a more accurate assessment.
+              Choose your preferred language and number of questions for your personalized assessment. 
+              Questions will be selected from all available categories in the selected language.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div
-              className={`border rounded-lg p-4 cursor-pointer text-center ${
-                questionCount === "10" ? "border-[#1045A1] bg-[#E6EDF7]" : ""
-              }`}
-              onClick={() => setQuestionCount("10")}
-            >
-              <h3 className="font-semibold">10 Questions</h3>
-              <p className="text-sm text-gray-600">10 minutes</p>
+          <div className="space-y-6">
+            {/* Language Selection */}
+            <div>
+              <h4 className="font-medium mb-3">Select Language</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div
+                  className={`border rounded-lg p-4 cursor-pointer text-center ${
+                    customLanguage === "ENG" ? "border-[#1045A1] bg-[#E6EDF7]" : ""
+                  }`}
+                  onClick={() => setCustomLanguage("ENG")}
+                >
+                  <h3 className="font-semibold">English</h3>
+                  <p className="text-sm text-gray-600">Questions in English</p>
+                </div>
+
+                <div
+                  className={`border rounded-lg p-4 cursor-pointer text-center ${
+                    customLanguage === "KIN" ? "border-[#1045A1] bg-[#E6EDF7]" : ""
+                  }`}
+                  onClick={() => setCustomLanguage("KIN")}
+                >
+                  <h3 className="font-semibold">Kinyarwanda</h3>
+                  <p className="text-sm text-gray-600">Questions in Kinyarwanda</p>
+                </div>
+              </div>
             </div>
 
-            <div
-              className={`border rounded-lg p-4 cursor-pointer text-center ${
-                questionCount === "25" ? "border-[#1045A1] bg-[#E6EDF7]" : ""
-              }`}
-              onClick={() => setQuestionCount("25")}
-            >
-              <h3 className="font-semibold">25 Questions</h3>
-              <p className="text-sm text-gray-600">25 minutes</p>
+            {/* Question Count Selection */}
+            <div>
+              <h4 className="font-medium mb-3">Select Number of Questions</h4>
+              <div className="grid grid-cols-1 gap-4">
+                <div
+                  className={`border rounded-lg p-4 cursor-pointer text-center ${
+                    questionCount === "10" ? "border-[#1045A1] bg-[#E6EDF7]" : ""
+                  }`}
+                  onClick={() => setQuestionCount("10")}
+                >
+                  <h3 className="font-semibold">10 Questions</h3>
+                  <p className="text-sm text-gray-600">Quick assessment - 10 minutes</p>
+                </div>
+
+                <div
+                  className={`border rounded-lg p-4 cursor-pointer text-center ${
+                    questionCount === "25" ? "border-[#1045A1] bg-[#E6EDF7]" : ""
+                  }`}
+                  onClick={() => setQuestionCount("25")}
+                >
+                  <h3 className="font-semibold">25 Questions</h3>
+                  <p className="text-sm text-gray-600">Standard assessment - 25 minutes</p>
+                </div>
+
+                <div
+                  className={`border rounded-lg p-4 cursor-pointer text-center ${
+                    questionCount === "50" ? "border-[#1045A1] bg-[#E6EDF7]" : ""
+                  }`}
+                  onClick={() => setQuestionCount("50")}
+                >
+                  <h3 className="font-semibold">50 Questions</h3>
+                  <p className="text-sm text-gray-600">Comprehensive assessment - 50 minutes</p>
+                </div>
+              </div>
             </div>
           </div>
 
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setShowQuestionDialog(false)}
+              onClick={() => setShowCustomDialog(false)}
             >
               Cancel
             </Button>
             <Button
               className="bg-[#1045A1] hover:bg-[#0D3A8B]"
-              onClick={handleStartAssessment}
-              isLoading={isCreating}
+              onClick={handleStartCustomAssessment}
+              isLoading={isLoadingRandom}
             >
               Start Assessment
             </Button>

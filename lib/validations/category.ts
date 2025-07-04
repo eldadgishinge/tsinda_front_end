@@ -5,6 +5,9 @@ export const createCategorySchema = z.object({
     .string()
     .min(3, "Category name must be at least 3 characters"),
   description: z.string().min(10, "Description must be at least 10 characters"),
+  language: z.enum(["ENG", "KIN"], {
+    required_error: "Language is required",
+  }),
 });
 
 export type CreateCategoryForm = z.infer<typeof createCategorySchema>;
@@ -13,5 +16,6 @@ export interface Category {
   _id: string;
   categoryName: string;
   description: string;
+  language: "ENG" | "KIN";
   createdAt: string;
 }

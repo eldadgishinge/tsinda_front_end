@@ -36,6 +36,7 @@ export function useCreateRandomExam() {
       questionCount: number;
       category: string;
       difficulty?: "Easy" | "Medium" | "Difficult";
+      language?: "ENG" | "KIN";
     }) => {
       const response = await axios.post("/exams/random", data);
       return response.data;
