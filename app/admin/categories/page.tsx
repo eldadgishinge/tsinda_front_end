@@ -103,7 +103,7 @@ export default function CategoriesPage() {
 
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedCategory) return
+    if (!selectedCategory?._id) return
     updateCategory({
       categoryId: selectedCategory._id,
       categoryName: editForm.categoryName,

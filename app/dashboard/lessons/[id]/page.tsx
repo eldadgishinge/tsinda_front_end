@@ -132,14 +132,14 @@ export default function LessonDetailsPage() {
           <ArrowLeft className="h-5 w-5" />
           <span>BACK</span>
         </button>
-        <h1 className="text-xl font-semibold">{course.title}</h1>
+        <h1 className="text-xl font-semibold">{course?.title || "Untitled Course"}</h1>
       </div>
 
       {/* Main Content */}
       <div className="flex-1">
         {enrollment?.isEnrolled ? (
           <div className="aspect-video bg-black flex items-center justify-center w-full max-h-[65vh]">
-            {course.videoUrl &&
+            {course?.videoUrl &&
               (isVimeoUrl(course.videoUrl) ? (
                 <iframe
                   src={getVimeoEmbedUrl(course.videoUrl)}
@@ -169,7 +169,7 @@ export default function LessonDetailsPage() {
                       clearInterval(progressInterval.current);
                     }
                   }}
-                  poster={course.thumbnailUrl}
+                  poster={course?.thumbnailUrl || "/placeholder.jpg"}
                 />
               ))}
           </div>

@@ -79,7 +79,7 @@ export default function LessonExercisePage() {
                   src={course.videoUrl}
                   className="w-full h-full"
                   controls
-                  poster={course.thumbnailUrl}
+                  poster={course?.thumbnailUrl || "/placeholder.jpg"}
                 />
               )
             ) : (

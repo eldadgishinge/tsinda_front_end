@@ -50,7 +50,7 @@ export default function AssessmentsPage() {
   // Filter exams by selected category
   const filteredExams = exams?.filter((exam) => {
     if (!selectedCategory) return false;
-    return exam.category._id === selectedCategory && exam.status === "Published";
+    return exam?.category?._id === selectedCategory && exam.status === "Published";
   });
 
   const handleStartCustomAssessment = async () => {
@@ -226,7 +226,7 @@ export default function AssessmentsPage() {
               {filteredCategories?.map((category) => {
                 // Count published exams for this category
                 const categoryExams = exams?.filter(
-                  (exam) => exam.category._id === category._id && exam.status === "Published"
+                  (exam) => exam?.category?._id === category._id && exam.status === "Published"
                 ) || [];
                 
                 return (

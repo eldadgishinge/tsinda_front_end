@@ -9,7 +9,7 @@ interface Enrollment {
   progress: number
   completedAt?: string
   status: "active" | "expired" | "cancelled"
-}
+}2
 
 export function useUserEnrollments() {
   return useQuery({

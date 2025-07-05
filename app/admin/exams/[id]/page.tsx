@@ -79,7 +79,7 @@ export default function ExamDetailsPage() {
         duration: exam.duration.toString(),
         passingScore: exam.passingScore.toString(),
         questions: exam.questions.map((q: any) => q._id),
-        category: exam.category._id,
+        category: exam.category?._id,
         course: exam.course?._id,
         language: exam.language,
         status: exam.status,

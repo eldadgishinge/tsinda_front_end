@@ -330,7 +330,7 @@ function AssessmentContent() {
 
   if (hasStarted) {
     const currentQuestion = currentExam.questions[currentQuestionIndex];
-    const selectedAnswer = answers[currentQuestion._id];
+    const selectedAnswer = answers[currentQuestion?._id];
 
     return (
       <div className="p-6 max-w-4xl mx-auto">
@@ -380,11 +380,11 @@ function AssessmentContent() {
                 >
                   <input
                     type="radio"
-                    name={`question-${currentQuestion._id}`}
+                    name={`question-${currentQuestion?._id}`}
                     value={optionIndex}
                     checked={selectedAnswer === optionIndex}
                     className="text-[#1045A1]"
-                    onChange={() => handleAnswerSelect(currentQuestion._id, optionIndex)}
+                    onChange={() => handleAnswerSelect(currentQuestion?._id, optionIndex)}
                   />
                   <span>{option.text}</span>
                 </label>
@@ -443,7 +443,7 @@ function AssessmentContent() {
               className={`w-3 h-3 rounded-full transition-colors ${
                 index === currentQuestionIndex 
                   ? 'bg-[#1045A1]' 
-                  : answers[currentExam.questions[index]._id] !== undefined 
+                  : answers[currentExam.questions[index]?._id] !== undefined 
                     ? 'bg-green-500' 
                     : 'bg-gray-300'
               }`}

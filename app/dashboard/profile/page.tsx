@@ -153,7 +153,7 @@ export default function ProfilePage() {
               className="flex items-center justify-between py-4 border-b last:border-b-0"
             >
               <div className="space-y-1">
-                <div className="font-medium">{attempt.exam.title}</div>
+                <div className="font-medium">{attempt.exam?.title || "Untitled Exam"}</div>
                 <div className="text-sm text-gray-600">
                   {new Date(attempt.endTime).toLocaleDateString()}
                 </div>

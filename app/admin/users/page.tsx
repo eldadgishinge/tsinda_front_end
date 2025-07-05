@@ -23,13 +23,13 @@ export default function UsersPage() {
   const { mutate: updateUser, isPending: isUpdating } = useUpdateUser();
 
   const handleDelete = () => {
-    if (selectedUser) {
+    if (selectedUser?._id) {
       deleteUser(selectedUser._id);
     }
   };
 
   const handleUpdate = (data: any) => {
-    if (selectedUser) {
+    if (selectedUser?._id) {
       updateUser({ userId: selectedUser._id, ...data });
     }
   };

@@ -22,7 +22,7 @@ export default function QuestionsPage() {
   const { mutate: deleteQuestion, isPending: isDeleting } = useDeleteQuestion();
 
   const handleDelete = () => {
-    if (selectedQuestion) {
+    if (selectedQuestion?._id) {
       deleteQuestion(selectedQuestion._id);
     }
   };

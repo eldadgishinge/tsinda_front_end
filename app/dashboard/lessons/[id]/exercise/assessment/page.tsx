@@ -115,7 +115,7 @@ export default function AssessmentPage() {
                   src={course.videoUrl}
                   className="w-full h-full"
                   controls
-                  poster={course.thumbnailUrl}
+                  poster={course?.thumbnailUrl || "/placeholder.jpg"}
                 />
               )
             ) : (

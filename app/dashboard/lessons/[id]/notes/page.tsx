@@ -107,7 +107,7 @@ export default function LessonNotesPage() {
           <ArrowLeft className="h-5 w-5" />
           <span>BACK</span>
         </button>
-        <h1 className="text-xl font-semibold">{course.title}</h1>
+        <h1 className="text-xl font-semibold">{course?.title || "Untitled Course"}</h1>
       </div>
 
       {/* Main Content */}

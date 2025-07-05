@@ -24,12 +24,14 @@ export default function DashboardPage() {
     userEnrollments
       ?.filter(
         (enrollment) =>
-          !enrollment.completedAt && enrollment.status === "active"
+          enrollment?.course && // Check if course exists
+          !enrollment.completedAt && 
+          enrollment.status === "active"
       )
       .slice(0, 3) || [];
 
   // Get recommended courses (first 2)
-  const recommendedCourses = courses?.slice(0, 2) || [];
+  const recommendedCourses = courses?.filter(course => course && course._id).slice(0, 2) || [];
 
   // Get number of students learning this week
   const studentsLearningThisWeek = allEnrollments?.length || 0;
@@ -54,24 +56,24 @@ export default function DashboardPage() {
                   {activeEnrollments.map((enrollment) => (
                     <Link
                       key={enrollment._id}
-                      href={`/dashboard/lessons/${enrollment.course._id}`}
+                      href={`/dashboard/lessons/${enrollment.course?._id}`}
                     >
                       <Card>
                         <CardContent className="p-6">
                           <div className="aspect-video bg-gray-100 rounded-lg mb-4 relative">
                             <Image
-                              src={enrollment.course.thumbnailUrl}
-                              alt={enrollment.course.title}
+                              src={enrollment.course?.thumbnailUrl || "/placeholder.jpg"}
+                              alt={enrollment.course?.title || "Course"}
                               fill
                               className="object-cover rounded-lg"
                             />
                           </div>
                           <h3 className="font-semibold mb-2">
-                            {enrollment.course.title}
+                            {enrollment.course?.title || "Untitled Course"}
                           </h3>
                           <div className="flex items-center justify-between text-sm text-gray-500">
-                            <span>{enrollment.course.language}</span>
-                            <span>{enrollment.progress}% completed</span>
+                            <span>{enrollment.course?.language || "Unknown"}</span>
+                            <span>{enrollment.progress || 0}% completed</span>
                           </div>
                         </CardContent>
                       </Card>
@@ -172,18 +174,18 @@ export default function DashboardPage() {
                 <CardContent className="p-6">
                   <div className="aspect-video bg-gray-100 rounded-lg mb-4 relative">
                     <Image
-                      src={course.thumbnailUrl}
-                      alt={course.title}
+                      src={course.thumbnailUrl || "/placeholder.jpg"}
+                      alt={course.title || "Course"}
                       fill
                       className="object-cover rounded-lg"
                     />
                   </div>
-                  <h3 className="font-semibold mb-2">{course.title}</h3>
+                  <h3 className="font-semibold mb-2">{course.title || "Untitled Course"}</h3>
                   <p className="text-gray-600 text-sm mb-4">
-                    {course.description}
+                    {course.description || "No description available"}
                   </p>
                   <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>{course.category?.categoryName}</span>
+                    <span>{course.category?.categoryName || "Uncategorized"}</span>
                     <span>1 hour</span>
                   </div>
                 </CardContent>

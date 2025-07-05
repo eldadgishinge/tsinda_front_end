@@ -25,7 +25,7 @@ export default function ExamsPage() {
   const { mutate: deleteExam, isPending: isDeleting } = useDeleteExam();
 
   const handleDelete = () => {
-    if (examToDelete) {
+    if (examToDelete?._id) {
       deleteExam(examToDelete._id);
       setExamToDelete(null);
     }

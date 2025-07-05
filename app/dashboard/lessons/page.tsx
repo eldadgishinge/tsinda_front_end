@@ -23,28 +23,30 @@ export default function LessonsPage() {
   const filteredCourses =
     courses?.filter(
       (course) =>
-        course.language === (language === "en" ? "English" : "Kinyarwanda")
+        course && course.language === (language === "en" ? "English" : "Kinyarwanda")
     ) || [];
 
   // Get enrollment status for each course
-  const coursesWithStatus = filteredCourses.map((course) => {
-    const enrollment = enrollments?.find((e) => e.course._id === course._id);
-    let courseStatus: EnrollmentStatus = "not-started";
+  const coursesWithStatus = filteredCourses
+    .filter((course) => course && course._id) // Filter out null/undefined courses
+    .map((course) => {
+      const enrollment = enrollments?.find((e) => e?.course?._id === course._id);
+      let courseStatus: EnrollmentStatus = "not-started";
 
-    if (enrollment) {
-      if (enrollment.completedAt) {
-        courseStatus = "completed";
-      } else if (enrollment.progress > 0) {
-        courseStatus = "in-progress";
+      if (enrollment) {
+        if (enrollment.completedAt) {
+          courseStatus = "completed";
+        } else if (enrollment.progress > 0) {
+          courseStatus = "in-progress";
+        }
       }
-    }
 
-    return {
-      ...course,
-      status: courseStatus,
-      progress: enrollment?.progress || 0,
-    };
-  });
+      return {
+        ...course,
+        status: courseStatus,
+        progress: enrollment?.progress || 0,
+      };
+    });
 
   // Filter by status if not "all"
   const displayedCourses =
@@ -129,40 +131,46 @@ export default function LessonsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {displayedCourses.map((course) => (
-          <Card key={course._id}>
-            <Link href={`/dashboard/lessons/${course._id}`}>
-              <div className="relative aspect-[2/1] bg-gray-100">
-                <Image
-                  src={course.thumbnailUrl}
-                  alt={course.title}
-                  fill
-                  className="object-cover rounded-t-lg"
-                />
-                {!course.isPublished && (
-                  <div className="absolute top-4 right-4">
-                    <Lock className="w-5 h-5 text-gray-600" />
-                  </div>
-                )}
-                {course.status !== "not-started" && (
-                  <div className="absolute bottom-4 right-4 bg-white rounded-full px-3 py-1 text-sm font-medium">
-                    {course.progress}% Complete
-                  </div>
-                )}
-              </div>
-              <CardContent className="p-6">
-                <h3 className="font-semibold mb-2">{course.title}</h3>
-                <p className="text-gray-600 text-sm mb-4">
-                  {course.description}
-                </p>
-                <div className="flex items-center justify-between text-sm text-gray-500">
-                  <span>{course.category?.categoryName}</span>
-                  <span>{course?.language}</span>
+        {displayedCourses && displayedCourses.length > 0 ? (
+          displayedCourses.map((course) => (
+            <Card key={course._id}>
+              <Link href={`/dashboard/lessons/${course._id}`}>
+                <div className="relative aspect-[2/1] bg-gray-100">
+                  <Image
+                    src={course.thumbnailUrl || "/placeholder.jpg"}
+                    alt={course.title || "Course"}
+                    fill
+                    className="object-cover rounded-t-lg"
+                  />
+                  {!course.isPublished && (
+                    <div className="absolute top-4 right-4">
+                      <Lock className="w-5 h-5 text-gray-600" />
+                    </div>
+                  )}
+                  {course.status !== "not-started" && (
+                    <div className="absolute bottom-4 right-4 bg-white rounded-full px-3 py-1 text-sm font-medium">
+                      {course.progress}% Complete
+                    </div>
+                  )}
                 </div>
-              </CardContent>
-            </Link>
-          </Card>
-        ))}
+                <CardContent className="p-6">
+                  <h3 className="font-semibold mb-2">{course.title || "Untitled Course"}</h3>
+                  <p className="text-gray-600 text-sm mb-4">
+                    {course.description || "No description available"}
+                  </p>
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <span>{course.category?.categoryName || "Uncategorized"}</span>
+                    <span>{course?.language || "Unknown"}</span>
+                  </div>
+                </CardContent>
+              </Link>
+            </Card>
+          ))
+        ) : (
+          <div className="col-span-full text-center py-12">
+            <p className="text-gray-500">No courses found for the selected criteria.</p>
+          </div>
+        )}
       </div>
     </div>
   );

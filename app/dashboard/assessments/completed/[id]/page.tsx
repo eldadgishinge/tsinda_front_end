@@ -32,8 +32,8 @@ export default function AssessmentCompletedPage() {
       if (tempExam && tempAnswers) {
         // Calculate score
         const answersArr = tempExam.questions.map((q: any, idx: number) => {
-          const selectedOption = tempAnswers[q._id];
-          const isCorrect = selectedOption !== undefined && q.answerOptions[selectedOption]?.isCorrect;
+          const selectedOption = tempAnswers[q?._id];
+          const isCorrect = selectedOption !== undefined && q?.answerOptions?.[selectedOption]?.isCorrect;
           return {
             questionId: q,
             selectedOption,
