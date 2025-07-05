@@ -29,13 +29,21 @@ export default function AssessmentsPage() {
     "category"
   );
   const [selectedCategory, setSelectedCategory] = useState<string>();
-  const [languageFilter, setLanguageFilter] = useState<"all" | "ENG" | "KIN">("all");
+  const [languageFilter, setLanguageFilter] = useState<"ENG" | "KIN">("ENG");
   const [showCustomDialog, setShowCustomDialog] = useState(false);
   const [questionCount, setQuestionCount] = useState<"10" | "25" | "50">("10");
   const [customLanguage, setCustomLanguage] = useState<"ENG" | "KIN">("ENG");
   const [isStartingCustom, setIsStartingCustom] = useState(false);
   const [randomQuestions, setRandomQuestions] = useState<any[]>([]);
   const [isLoadingRandom, setIsLoadingRandom] = useState(false);
+  
+  // New state for category-specific random assessment
+  const [showCategoryRandomDialog, setShowCategoryRandomDialog] = useState(false);
+  const [selectedCategoryForRandom, setSelectedCategoryForRandom] = useState<any>(null);
+  const [categoryQuestionCount, setCategoryQuestionCount] = useState<"20" | "30" | "40" | "50">("20");
+  const [isStartingCategoryRandom, setIsStartingCategoryRandom] = useState(false);
+  const [categoryRandomQuestions, setCategoryRandomQuestions] = useState<any[]>([]);
+  const [isLoadingCategoryRandom, setIsLoadingCategoryRandom] = useState(false);
 
   const router = useRouter();
   const { data: exams, isLoading: isLoadingExams } = useExams();
@@ -43,7 +51,6 @@ export default function AssessmentsPage() {
 
   // Filter categories based on language selection
   const filteredCategories = categories?.filter((category) => {
-    if (languageFilter === "all") return true;
     return category.language === languageFilter;
   });
 
@@ -70,6 +77,28 @@ export default function AssessmentsPage() {
       toast.error(`Failed to load questions: ${error.response?.data?.message || error.message}`);
       setIsStartingCustom(false);
       setIsLoadingRandom(false);
+    }
+  };
+
+  const handleStartCategoryRandomAssessment = async () => {
+    if (!selectedCategoryForRandom) return;
+    
+    setIsStartingCategoryRandom(true);
+    setIsLoadingCategoryRandom(true);
+    setShowCategoryRandomDialog(false);
+    toast.success(`Preparing your ${categoryQuestionCount}-question assessment for ${selectedCategoryForRandom.categoryName}...`);
+    
+    try {
+      const response = await axios.get(`/questions/random/category/${selectedCategoryForRandom._id}?count=${categoryQuestionCount}`, {
+        timeout: 10000 // 10 second timeout
+      });
+      window.sessionStorage.setItem('lastCategoryRandomApiResponse', JSON.stringify(response.data));
+      const questions = response.data.questions || [];
+      setCategoryRandomQuestions(questions);
+    } catch (error: any) {
+      toast.error(`Failed to load questions: ${error.response?.data?.message || error.message}`);
+      setIsStartingCategoryRandom(false);
+      setIsLoadingCategoryRandom(false);
     }
   };
 
@@ -113,8 +142,48 @@ export default function AssessmentsPage() {
     }
   }, [isStartingCustom, randomQuestions, questionCount, customLanguage, router]);
 
+  // useEffect to handle navigation when category random questions are loaded
+  useEffect(() => {
+    if (isStartingCategoryRandom && categoryRandomQuestions && categoryRandomQuestions.length > 0) {
+      
+      // Get duration from the last random API response if available
+      let duration = parseInt(categoryQuestionCount);
+      try {
+        const lastRandomApi = window.sessionStorage.getItem('lastCategoryRandomApiResponse');
+        if (lastRandomApi) {
+          const parsed = JSON.parse(lastRandomApi);
+          if (parsed.duration) duration = parsed.duration;
+        }
+      } catch {}
+
+      // Create a temporary exam object with the random questions
+      const tempExam = {
+        _id: `temp-category-${Date.now()}`,
+        title: `${selectedCategoryForRandom?.categoryName} Assessment (${categoryQuestionCount} Questions)`,
+        description: `Random assessment with ${categoryQuestionCount} questions from ${selectedCategoryForRandom?.categoryName}`,
+        duration,
+        passingScore: 70,
+        questions: categoryRandomQuestions,
+        category: { _id: selectedCategoryForRandom?._id || "", categoryName: selectedCategoryForRandom?.categoryName || "Category" },
+        language: selectedCategoryForRandom?.language === "ENG" ? "English" : "Kinyarwanda",
+        status: "Published" as const,
+        createdAt: new Date().toISOString(),
+      };
+
+      // Store the exam in sessionStorage for the assessment page
+      sessionStorage.setItem("tempExam", JSON.stringify(tempExam));
+      
+      // Reset the state
+      setIsStartingCategoryRandom(false);
+      setIsLoadingCategoryRandom(false);
+      
+      // Navigate to the assessment immediately
+      router.push(`/dashboard/assessments/start?id=${tempExam._id}`);
+    }
+  }, [isStartingCategoryRandom, categoryRandomQuestions, categoryQuestionCount, selectedCategoryForRandom, router]);
+
   // Show loading state when fetching random questions
-  if (isStartingCustom && isLoadingRandom) {
+  if ((isStartingCustom && isLoadingRandom) || (isStartingCategoryRandom && isLoadingCategoryRandom)) {
     return (
       <div className="space-y-6">
         <div>
@@ -131,7 +200,10 @@ export default function AssessmentsPage() {
             <div>
               <h3 className="text-lg font-semibold text-[#1045A1]">Preparing Your Assessment</h3>
               <p className="text-gray-600">
-                Loading {questionCount} questions in {customLanguage === "ENG" ? "English" : "Kinyarwanda"}...
+                {isStartingCustom 
+                  ? `Loading ${questionCount} questions in ${customLanguage === "ENG" ? "English" : "Kinyarwanda"}...`
+                  : `Loading ${categoryQuestionCount} questions for ${selectedCategoryForRandom?.categoryName}...`
+                }
               </p>
             </div>
           </div>
@@ -203,13 +275,12 @@ export default function AssessmentsPage() {
             <span className="text-sm text-gray-600">Language:</span>
             <Select
               value={languageFilter}
-              onValueChange={(value: "all" | "ENG" | "KIN") => setLanguageFilter(value)}
+              onValueChange={(value: "ENG" | "KIN") => setLanguageFilter(value)}
             >
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Select language" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
                 <SelectItem value="ENG">English</SelectItem>
                 <SelectItem value="KIN">Kinyarwanda</SelectItem>
               </SelectContent>
@@ -270,6 +341,30 @@ export default function AssessmentsPage() {
                 <h2 className="text-xl font-semibold">
                   {categories?.find((c) => c._id === selectedCategory)?.categoryName} Exams
                 </h2>
+              </div>
+              
+              {/* Create Random Assessment Button */}
+              <div className="border rounded-lg p-6 bg-gradient-to-r from-green-50 to-blue-50">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold mb-1">Create Random Assessment</h3>
+                    <p className="text-sm text-gray-600">
+                      Generate a random assessment with questions from this category
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      const category = categories?.find((c) => c._id === selectedCategory);
+                      if (category) {
+                        setSelectedCategoryForRandom(category);
+                        setShowCategoryRandomDialog(true);
+                      }
+                    }}
+                    className="bg-[#1045A1] hover:bg-[#0D3A8B]"
+                  >
+                    Create Random Assessment
+                  </Button>
+                </div>
               </div>
               
               {filteredExams && filteredExams.length > 0 ? (
@@ -443,6 +538,83 @@ export default function AssessmentsPage() {
               className="bg-[#1045A1] hover:bg-[#0D3A8B]"
               onClick={handleStartCustomAssessment}
               isLoading={isLoadingRandom}
+            >
+              Start Assessment
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Category Random Assessment Dialog */}
+      <Dialog open={showCategoryRandomDialog} onOpenChange={setShowCategoryRandomDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Random Assessment</DialogTitle>
+            <DialogDescription>
+              Choose the number of questions for your random assessment from {selectedCategoryForRandom?.categoryName}. 
+              Questions will be randomly selected from this category.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Question Count Selection */}
+            <div>
+              <h4 className="font-medium mb-3">Select Number of Questions</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div
+                  className={`border rounded-lg p-4 cursor-pointer text-center ${
+                    categoryQuestionCount === "20" ? "border-[#1045A1] bg-[#E6EDF7]" : ""
+                  }`}
+                  onClick={() => setCategoryQuestionCount("20")}
+                >
+                  <h3 className="font-semibold">20 Questions</h3>
+                  <p className="text-sm text-gray-600">Quick assessment - 20 minutes</p>
+                </div>
+
+                <div
+                  className={`border rounded-lg p-4 cursor-pointer text-center ${
+                    categoryQuestionCount === "30" ? "border-[#1045A1] bg-[#E6EDF7]" : ""
+                  }`}
+                  onClick={() => setCategoryQuestionCount("30")}
+                >
+                  <h3 className="font-semibold">30 Questions</h3>
+                  <p className="text-sm text-gray-600">Standard assessment - 30 minutes</p>
+                </div>
+
+                <div
+                  className={`border rounded-lg p-4 cursor-pointer text-center ${
+                    categoryQuestionCount === "40" ? "border-[#1045A1] bg-[#E6EDF7]" : ""
+                  }`}
+                  onClick={() => setCategoryQuestionCount("40")}
+                >
+                  <h3 className="font-semibold">40 Questions</h3>
+                  <p className="text-sm text-gray-600">Extended assessment - 40 minutes</p>
+                </div>
+
+                <div
+                  className={`border rounded-lg p-4 cursor-pointer text-center ${
+                    categoryQuestionCount === "50" ? "border-[#1045A1] bg-[#E6EDF7]" : ""
+                  }`}
+                  onClick={() => setCategoryQuestionCount("50")}
+                >
+                  <h3 className="font-semibold">50 Questions</h3>
+                  <p className="text-sm text-gray-600">Comprehensive assessment - 50 minutes</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCategoryRandomDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="bg-[#1045A1] hover:bg-[#0D3A8B]"
+              onClick={handleStartCategoryRandomAssessment}
+              isLoading={isLoadingCategoryRandom}
             >
               Start Assessment
             </Button>
