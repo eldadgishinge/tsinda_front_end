@@ -241,9 +241,11 @@ export default function LessonDetailsPage() {
           </Button>
         </Link>
 
-        <Button
-          variant={"outline"}
-          className={`h-10 justify-center rounded-full border-2 text-sm ${"border-[#1045A1] text-[#1045A1] hover:bg-blue-50"}`}
+        <a
+          href="https://chat.whatsapp.com/KdXzD6eogEX02d42yEPSVf"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`inline-flex items-center justify-center h-10 rounded-full border-2 text-sm ${"border-[#1045A1] text-[#1045A1] hover:bg-blue-50"}`}
         >
           <svg
             viewBox="0 0 24 24"
@@ -253,11 +255,16 @@ export default function LessonDetailsPage() {
             <path d="M12 0a12 12 0 1 1 0 24 12 12 0 0 1 0-24zm.14 4.5a7.34 7.34 0 0 0-6.46 10.82l.15.26L4.5 19.5l4.08-1.3a7.38 7.38 0 0 0 10.92-6.4c0-4.03-3.26-7.3-7.36-7.3zm0 1.16c3.41 0 6.19 2.78 6.19 6.15a6.17 6.17 0 0 1-9.37 5.27l-.23-.15-2.38.76.77-2.28a6.08 6.08 0 0 1-1.17-3.6 6.17 6.17 0 0 1 6.19-6.15z" />
           </svg>
           Join Community
-        </Button>
+        </a>
 
-        <Button className="h-10 justify-center rounded-full bg-[#1045A1] font-medium hover:bg-[#0D3A8B] text-sm">
+        <a
+          href="https://forms.gle/AVy4oL5pJ4xV1BHX8"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center h-10 rounded-full bg-[#1045A1] font-medium hover:bg-[#0D3A8B] text-sm text-white"
+        >
           Register for info session
-        </Button>
+        </a>
       </div>
     </div>
   );
