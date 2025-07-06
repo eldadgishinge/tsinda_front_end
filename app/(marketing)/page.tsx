@@ -22,15 +22,14 @@ const quizQuestions = [
   },
   {
     id: 2,
-    question: "When should you check your tire pressure?",
+    question: "What should you do when approaching a yellow traffic light?",
     options: [
-      "Only when the tires look flat",
-      "Once a year during maintenance",
-      "At least once a month and before long trips",
-      "Only during winter months"
+      "Speed up to get through before it turns red",
+      "Stop if it's safe to do so, otherwise proceed with caution",
+      "Ignore it and continue driving normally",
+      "Honk your horn to alert other drivers"
     ]
   },
-  // Add more questions as needed
 ]
 
 const testimonials = [
@@ -117,9 +116,11 @@ export default function HomePage() {
             <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900">
               Log in to your account
             </Link>
-            <Button className="bg-[#1045A1] hover:bg-[#0D3A8B]">
-              Create an account
-            </Button>
+            <Link href="/signup">
+              <Button className="bg-[#1045A1] hover:bg-[#0D3A8B]">
+                Create an account
+              </Button>
+            </Link>
           </div>
         </div>
       </header>
@@ -133,19 +134,40 @@ export default function HomePage() {
               {/* Your Journey to Safe Driving Begins Here! Learn Anytime, Anywhere. */}
               Tsinda  Coming Soon
             </h1>
-            <Button size="lg" className="bg-[#1045A1] hover:bg-[#0D3A8B]">
-              Start Your Learning Adventure Now
-            </Button>
+            <Link href="/login">
+              <Button size="lg" className="bg-[#1045A1] hover:bg-[#0D3A8B]">
+                Start Your Learning Adventure Now
+              </Button>
+            </Link>
 
-            <div className="mt-16 relative aspect-[16/9] max-w-5xl mx-auto rounded-2xl overflow-hidden">
-              <Link href="/signup">
-                <Image
-                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Container-Vumwn0SEPA8kKQCIHkyxybvPJ6jxRr.png"
-                  alt="Road with traffic sign"
-                  fill
-                  className="object-cover cursor-pointer"
-                />
-              </Link>
+            <div className="mt-16 relative aspect-[16/9] max-w-5xl mx-auto rounded-2xl overflow-hidden group">
+              <Image
+                src="/image.png"
+                alt="Road with traffic sign"
+                fill
+                className="object-cover"
+                priority
+              />
+              {/* Dark overlay for shadow effect */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent pointer-events-none" />
+              <button
+                onClick={() => window.location.href = '/login'}
+                className="absolute inset-0 flex items-center justify-center transition group-hover:bg-black/30"
+                aria-label="Play video"
+                style={{ border: 'none', background: 'transparent', cursor: 'pointer' }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="80"
+                  height="80"
+                  viewBox="0 0 80 80"
+                  fill="none"
+                  style={{ filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.35))' }}
+                >
+                  <circle cx="40" cy="40" r="40" fill="white" fillOpacity="0.7" />
+                  <polygon points="32,25 60,40 32,55" fill="#1045A1" />
+                </svg>
+              </button>
             </div>
           </div>
         </section>
@@ -167,15 +189,17 @@ export default function HomePage() {
                       Question {currentQuestion + 1} of {quizQuestions.length}
                     </span>
                   </div>
-                  <div className="grid md:grid-cols-2 gap-8">
-                    <div className="aspect-square relative bg-gray-100 rounded-lg overflow-hidden">
-                      <Image
-                        src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-O9tuSjcrDuWmy6QnbVmiY45YbrwYWz.png"
-                        alt="Car tires"
-                        fill
-                        className="object-contain p-8"
-                      />
-                    </div>
+                  <div className={currentQuestion === 0 ? "grid md:grid-cols-2 gap-8" : "max-w-2xl mx-auto"}>
+                    {currentQuestion === 0 && (
+                      <div className="aspect-square relative bg-gray-100 rounded-lg overflow-hidden">
+                        <Image
+                          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-O9tuSjcrDuWmy6QnbVmiY45YbrwYWz.png"
+                          alt="ABS braking system"
+                          fill
+                          className="object-contain p-8"
+                        />
+                      </div>
+                    )}
                     <div className="space-y-4">
                       {quizQuestions[currentQuestion].options.map((option, index) => (
                         <label
@@ -208,13 +232,24 @@ export default function HomePage() {
                     >
                       Back
                     </Button>
-                    <Button
-                      className="bg-[#1045A1] hover:bg-[#0D3A8B]"
-                      onClick={handleNext}
-                      disabled={currentQuestion === quizQuestions.length - 1 || !selectedAnswer}
-                    >
-                      Next
-                    </Button>
+                    {currentQuestion === quizQuestions.length - 1 ? (
+                      <Link href="/login">
+                        <Button
+                          className="bg-[#1045A1] hover:bg-[#0D3A8B]"
+                          disabled={!selectedAnswer}
+                        >
+                          Submit
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Button
+                        className="bg-[#1045A1] hover:bg-[#0D3A8B]"
+                        onClick={handleNext}
+                        disabled={!selectedAnswer}
+                      >
+                        Next
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -237,15 +272,17 @@ export default function HomePage() {
               <CardContent className="p-8 text-center">
                 <h3 className="text-xl font-semibold mb-4">Advanced Plan</h3>
                 <div className="mb-4">
-                  <span className="text-5xl font-bold">$30</span>
+                  <span className="text-5xl font-bold">5,000 RWF</span>
                   <span className="text-gray-600 ml-2">per month</span>
                 </div>
                 <p className="text-gray-600 mb-8">
                   Enhanced features and detailed reporting.
                 </p>
-                <Button className="w-full bg-[#1045A1] hover:bg-[#0D3A8B]">
-                  Get Started
-                </Button>
+                <Link href="/signup">
+                  <Button className="w-full bg-[#1045A1] hover:bg-[#0D3A8B]">
+                    Get Started
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           </div>
@@ -343,7 +380,7 @@ export default function HomePage() {
                   />
                 </div>
                 <div>
-                  <h3 className="font-semibold">Untitled UI</h3>
+                  <h3 className="font-semibold">Tsinda</h3>
                   <p className="text-sm text-gray-600">
                     Create exceptional driving experiences that bring joy to learners.
                   </p>
@@ -373,7 +410,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-sm text-gray-600">
-              © 2077 SmartDrive. All rights reserved.
+              © {new Date().getFullYear()} Tsinda. All rights reserved.
             </div>
             <div className="flex gap-6">
               <Link href="#" className="text-sm text-gray-600 hover:text-gray-900">
