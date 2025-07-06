@@ -1,4 +1,5 @@
 # Tsinda  Frontend
+Link to the deployed Version  [Tsinda.com ](https://www.tsinda.com/)
 
 ## Description
 Tsinda is a comprehensive driving theory learning platform designed to help users prepare for their driving tests in Rwanda. The application provides interactive lessons, assessments, and quizzes in both English and Kinyarwanda, making it accessible to both local and foreign residents.
