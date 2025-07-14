@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check } from "lucide-react";
+import { Check, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { useCategories } from "@/hooks/use-categories";
 import { useExamAttempts } from "@/hooks/use-exam-attempts";
 import { useUser } from "@/hooks/use-auth";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface CategoryProgress {
   categoryId: string;
@@ -21,6 +22,7 @@ export default function ProfilePage() {
   const { data: user } = useUser();
   const { data: categories } = useCategories();
   const { data: examAttempts } = useExamAttempts();
+  const router = useRouter();
   const [categoryProgress, setCategoryProgress] = useState<CategoryProgress[]>(
     []
   );
@@ -62,6 +64,40 @@ export default function ProfilePage() {
     const totalRequired = progress.length * 120;
     setTotalProgress(Math.min((totalCompleted / totalRequired) * 100, 100));
   }, [categories, examAttempts]);
+
+  // Function to shuffle array
+  const shuffleArray = (array: any[]) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
+  // Function to handle retry
+  const handleRetry = (attempt: any) => {
+    // Create a temp exam with shuffled questions
+    const tempExam = {
+      _id: `temp-retry-${Date.now()}`,
+      title: `${attempt.exam.title} (Retry)`,
+      description: `Retry of ${attempt.exam.title}`,
+      duration: attempt.exam.duration,
+      passingScore: attempt.exam.passingScore,
+      questions: shuffleArray(attempt.answers.map((a: any) => a.questionId)),
+      category: attempt.exam.category,
+      language: attempt.exam.language,
+      status: "Published" as const,
+      createdAt: new Date().toISOString(),
+    };
+    
+    // Store the temp exam for retry
+    sessionStorage.setItem("tempExam", JSON.stringify(tempExam));
+    sessionStorage.removeItem('tempAnswers');
+    
+    // Navigate to start page
+    router.push(`/dashboard/assessments/start?id=${tempExam._id}`);
+  };
 
   // If user is admin, redirect to admin dashboard
   if (user?.role === "admin") {
@@ -168,11 +204,22 @@ export default function ProfilePage() {
                 >
                   Score: {attempt.score}%
                 </div>
-                <Link href={`/dashboard/assessments/completed/${attempt._id}`}>
-                  <Button className="bg-[#1045A1] hover:bg-[#0D3A8B]">
-                    View
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleRetry(attempt)}
+                    className="flex items-center gap-1"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    Retry
                   </Button>
-                </Link>
+                  <Link href={`/dashboard/assessments/completed/${attempt._id}`}>
+                    <Button className="bg-[#1045A1] hover:bg-[#0D3A8B]">
+                      View
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
           ))}

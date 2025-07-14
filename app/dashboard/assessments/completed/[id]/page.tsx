@@ -1,16 +1,17 @@
 "use client"
 
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
 import { useEffect, useMemo, useState } from "react"
 import axios from "@/lib/axios"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Loader2, CheckCircle2, XCircle } from "lucide-react"
+import { Loader2, CheckCircle2, XCircle, RotateCcw } from "lucide-react"
 import Link from "next/link"
 
 export default function AssessmentCompletedPage() {
   const params = useParams()
+  const router = useRouter()
   const attemptId = params.id as string
   const [tempResult, setTempResult] = useState<any>(null);
 
@@ -64,6 +65,63 @@ export default function AssessmentCompletedPage() {
     enabled: !!attemptId && !attemptId.startsWith('temp-'),
   })
 
+  // Function to shuffle array
+  const shuffleArray = (array: any[]) => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
+  // Function to handle retry
+  const handleRetry = () => {
+    if (attemptId.startsWith('temp-')) {
+      // For temp exams, restart with shuffled questions
+      const tempExam = JSON.parse(sessionStorage.getItem('tempExam') || 'null');
+      if (tempExam) {
+        // Create a new temp exam with shuffled questions
+        const shuffledExam = {
+          ...tempExam,
+          _id: `temp-retry-${Date.now()}`,
+          title: `${tempExam.title} (Retry)`,
+          questions: shuffleArray(tempExam.questions),
+        };
+        
+        // Clear previous answers and store shuffled exam
+        sessionStorage.removeItem('tempAnswers');
+        sessionStorage.setItem("tempExam", JSON.stringify(shuffledExam));
+        
+        // Navigate back to start page
+        router.push(`/dashboard/assessments/start?id=${shuffledExam._id}`);
+      }
+    } else {
+      // For regular exams, create a temp exam with shuffled questions
+      if (attempt) {
+        const tempExam = {
+          _id: `temp-retry-${Date.now()}`,
+          title: `${attempt.exam.title} (Retry)`,
+          description: `Retry of ${attempt.exam.title}`,
+          duration: attempt.exam.duration,
+          passingScore: attempt.exam.passingScore,
+          questions: shuffleArray(attempt.answers.map((a: any) => a.questionId)),
+          category: attempt.exam.category,
+          language: attempt.exam.language,
+          status: "Published" as const,
+          createdAt: new Date().toISOString(),
+        };
+        
+        // Store the temp exam for retry
+        sessionStorage.setItem("tempExam", JSON.stringify(tempExam));
+        sessionStorage.removeItem('tempAnswers');
+        
+        // Navigate to start page
+        router.push(`/dashboard/assessments/start?id=${tempExam._id}`);
+      }
+    }
+  };
+
   if (attemptId.startsWith('temp-')) {
     if (tempResult === null) {
       return (
@@ -81,28 +139,40 @@ export default function AssessmentCompletedPage() {
     }
     // Render temp/random exam result
     const { isPassed, score, exam, answers } = tempResult;
-    return (
-      <div className="max-w-4xl mx-auto p-6">
-        <Card className="p-8 mb-8">
-          <div className="text-center mb-8">
-            {isPassed ? (
-              <div className="text-green-500 mb-4">
-                <CheckCircle2 className="h-16 w-16 mx-auto" />
-                <h1 className="text-2xl font-bold mt-4">Congratulations!</h1>
-                <p className="text-gray-600">
-                  You have passed the exam with a score of {score}%
-                </p>
-              </div>
-            ) : (
-              <div className="text-red-500 mb-4">
-                <XCircle className="h-16 w-16 mx-auto" />
-                <h1 className="text-2xl font-bold mt-4">Keep Practicing</h1>
-                <p className="text-gray-600">
-                  You scored {score}%. The passing score was {exam.passingScore}%
-                </p>
-              </div>
-            )}
-          </div>
+      return (
+    <div className="max-w-4xl mx-auto p-6">
+      <Card className="p-8 mb-8">
+        {/* Retry Button inside Card */}
+        <div className="flex justify-end mb-6">
+          <Button 
+            onClick={handleRetry}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Retry Assessment
+          </Button>
+        </div>
+        
+        <div className="text-center mb-8">
+          {isPassed ? (
+            <div className="text-green-500 mb-4">
+              <CheckCircle2 className="h-16 w-16 mx-auto" />
+              <h1 className="text-2xl font-bold mt-4">Congratulations!</h1>
+              <p className="text-gray-600">
+                You have passed the exam with a score of {score}%
+              </p>
+            </div>
+          ) : (
+            <div className="text-red-500 mb-4">
+              <XCircle className="h-16 w-16 mx-auto" />
+              <h1 className="text-2xl font-bold mt-4">Keep Practicing</h1>
+              <p className="text-gray-600">
+                You scored {score}%. The passing score was {exam.passingScore}%
+              </p>
+            </div>
+          )}
+        </div>
 
           <div className="grid grid-cols-2 gap-4 mb-8">
             <div className="text-center p-4 bg-gray-50 rounded-lg">
@@ -177,7 +247,15 @@ export default function AssessmentCompletedPage() {
             ))}
           </div>
 
-          <div className="mt-8 flex justify-center">
+          <div className="mt-8 flex justify-center gap-4">
+            <Button 
+              onClick={handleRetry}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Retry Same Questions
+            </Button>
             <Link href="/dashboard/assessments">
               <Button className="bg-[#1045A1] hover:bg-[#0D3A8B]">
                 Back to Assessments
@@ -208,6 +286,18 @@ export default function AssessmentCompletedPage() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <Card className="p-8 mb-8">
+        {/* Retry Button inside Card */}
+        <div className="flex justify-end mb-6">
+          <Button 
+            onClick={handleRetry}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Retry Assessment
+          </Button>
+        </div>
+        
         <div className="text-center mb-8">
           {attempt.isPassed ? (
             <div className="text-green-500 mb-4">
@@ -302,7 +392,15 @@ export default function AssessmentCompletedPage() {
           ))}
         </div>
 
-        <div className="mt-8 flex justify-center">
+        <div className="mt-8 flex justify-center gap-4">
+          <Button 
+            onClick={handleRetry}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Retry Same Questions
+          </Button>
           <Link href="/dashboard/assessments">
             <Button className="bg-[#1045A1] hover:bg-[#0D3A8B]">
               Back to Assessments

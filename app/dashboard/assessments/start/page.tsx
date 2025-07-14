@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
@@ -542,6 +542,3 @@ export default function AssessmentStartPage() {
     </Suspense>
   );
 }
-
-// Don't forget to add this import at the top
-import { useSearchParams } from "next/navigation";
