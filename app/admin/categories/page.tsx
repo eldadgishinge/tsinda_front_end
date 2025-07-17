@@ -52,44 +52,46 @@ export default function CategoriesPage() {
     {
       id: "actions",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <Button
             variant="ghost"
             size="icon"
+            className="h-8 w-8 sm:h-9 sm:w-9"
             onClick={() => {
               setSelectedCategory(row.original)
               setShowViewDialog(true)
             }}
           >
-            <Eye className="h-4 w-4 text-gray-500" />
+            <Eye className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
+            className="h-8 w-8 sm:h-9 sm:w-9"
             onClick={() => {
               setSelectedCategory(row.original)
               setShowEditDialog(true)
             }}
           >
-            <Pencil className="h-4 w-4 text-gray-500" />
+            <Pencil className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
+            className="h-8 w-8 sm:h-9 sm:w-9"
             onClick={() => {
               setSelectedCategory(row.original)
               setShowDeleteDialog(true)
             }}
             isLoading={isDeleting}
           >
-            <Trash2 className="h-4 w-4 text-gray-500" />
+            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
           </Button>
         </div>
       ),
     },
   ]
 
-  // Edit form state
   const [editForm, setEditForm] = useState({ categoryName: "", description: "", language: "ENG" as "ENG" | "KIN" })
   useEffect(() => {
     if (selectedCategory && showEditDialog) {
@@ -115,22 +117,22 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Category Management</h1>
+    <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+        <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">Category Management</h1>
         <Button
-          className="bg-[#1045A1] hover:bg-[#0D3A8B]"
+          className="bg-[#1045A1] hover:bg-[#0D3A8B] text-sm lg:text-base"
           onClick={() => setShowAddDialog(true)}
         >
           ADD CATEGORY
         </Button>
       </div>
 
-      <div className="border rounded-lg bg-white">
-        <div className="p-4 flex items-center justify-between border-b">
+      <div className="border rounded-lg bg-white overflow-x-auto">
+        <div className="p-3 sm:p-4 flex items-center justify-between border-b">
           <div className="flex items-center gap-2">
-            <h2 className="font-semibold">Current Categories</h2>
-            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+            <h2 className="font-semibold text-sm sm:text-base">Current Categories</h2>
+            <span className="text-xs sm:text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
               {categories?.length || 0} categories
             </span>
           </div>
@@ -148,25 +150,24 @@ export default function CategoriesPage() {
         onOpenChange={setShowAddDialog}
       />
 
-      {/* View Category Modal */}
       {selectedCategory && (
         <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-sm sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="flex flex-col items-center gap-2">
-                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-2">
-                  <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-green-100 flex items-center justify-center mb-2">
+                  <svg className="w-6 h-6 sm:w-8 sm:h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 </div>
-                <span className="text-lg font-bold">{selectedCategory.categoryName}</span>
+                <span className="text-base sm:text-lg font-bold">{selectedCategory.categoryName}</span>
                 <span className="text-xs text-gray-500">Category Details</span>
               </DialogTitle>
             </DialogHeader>
-            <div className="bg-gray-50 rounded-lg p-4 space-y-4 border mt-2">
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4 space-y-3 sm:space-y-4 border mt-2">
               <div className="flex flex-col gap-1">
                 <span className="text-xs text-gray-500 font-medium">Description</span>
-                <span className="text-gray-800">{selectedCategory.description}</span>
+                <span className="text-gray-800 text-sm lg:text-base">{selectedCategory.description}</span>
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-xs text-gray-500 font-medium">Language</span>
@@ -185,18 +186,17 @@ export default function CategoriesPage() {
         </Dialog>
       )}
 
-      {/* Edit Category Modal */}
       {selectedCategory && (
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-sm sm:max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-lg font-bold">Edit Category</DialogTitle>
+              <DialogTitle className="text-base sm:text-lg font-bold">Edit Category</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleEditSubmit} className="space-y-4 mt-2">
+            <form onSubmit={handleEditSubmit} className="space-y-3 sm:space-y-4 mt-2">
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Category Name</label>
                 <input
-                  className="w-full border rounded px-3 py-2"
+                  className="w-full border rounded px-3 py-2 text-sm lg:text-base"
                   value={editForm.categoryName}
                   onChange={e => setEditForm(f => ({ ...f, categoryName: e.target.value }))}
                   required
@@ -206,7 +206,7 @@ export default function CategoriesPage() {
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Description</label>
                 <textarea
-                  className="w-full border rounded px-3 py-2"
+                  className="w-full border rounded px-3 py-2 text-sm lg:text-base"
                   value={editForm.description}
                   onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))}
                   required
@@ -219,7 +219,7 @@ export default function CategoriesPage() {
                   value={editForm.language}
                   onValueChange={(value: "ENG" | "KIN") => setEditForm(f => ({ ...f, language: value }))}
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="w-full text-sm lg:text-base">
                     <SelectValue placeholder="Select language" />
                   </SelectTrigger>
                   <SelectContent>
@@ -229,10 +229,10 @@ export default function CategoriesPage() {
                 </Select>
               </div>
               <div className="flex justify-end gap-2">
-                <Button variant="outline" type="button" onClick={() => setShowEditDialog(false)}>
+                <Button variant="outline" type="button" onClick={() => setShowEditDialog(false)} className="text-sm lg:text-base">
                   Cancel
                 </Button>
-                <Button type="submit" className="bg-[#1045A1] hover:bg-[#0D3A8B]" isLoading={isUpdating}>
+                <Button type="submit" className="bg-[#1045A1] hover:bg-[#0D3A8B] text-sm lg:text-base" isLoading={isUpdating}>
                   Save Changes
                 </Button>
               </div>
@@ -241,20 +241,19 @@ export default function CategoriesPage() {
         </Dialog>
       )}
 
-      {/* Delete Category Confirmation Modal */}
       {selectedCategory && (
         <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-sm sm:max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-lg font-bold text-red-600">Delete Category</DialogTitle>
+              <DialogTitle className="text-base sm:text-lg font-bold text-red-600">Delete Category</DialogTitle>
             </DialogHeader>
-            <div className="py-4">
-              <p className="text-gray-700 mb-4">
+            <div className="py-3 sm:py-4">
+              <p className="text-gray-700 mb-4 text-sm lg:text-base">
                 Are you sure you want to delete the category <span className="font-semibold">{selectedCategory.categoryName}</span>?<br/>
                 This action cannot be undone.
               </p>
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+                <Button variant="outline" onClick={() => setShowDeleteDialog(false)} className="text-sm lg:text-base">
                   Cancel
                 </Button>
                 <Button
@@ -265,6 +264,7 @@ export default function CategoriesPage() {
                       onSuccess: () => setShowDeleteDialog(false),
                     })
                   }}
+                  className="text-sm lg:text-base"
                 >
                   Delete
                 </Button>

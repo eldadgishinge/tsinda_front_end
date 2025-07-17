@@ -37,7 +37,6 @@ export default function AssessmentsPage() {
   const [randomQuestions, setRandomQuestions] = useState<any[]>([]);
   const [isLoadingRandom, setIsLoadingRandom] = useState(false);
   
-  // New state for category-specific random assessment
   const [showCategoryRandomDialog, setShowCategoryRandomDialog] = useState(false);
   const [selectedCategoryForRandom, setSelectedCategoryForRandom] = useState<any>(null);
   const [categoryQuestionCount, setCategoryQuestionCount] = useState<"20" | "30" | "40" | "50">("20");
@@ -49,18 +48,14 @@ export default function AssessmentsPage() {
   const { data: exams, isLoading: isLoadingExams } = useExams();
   const { data: categories, isLoading: isLoadingCategories } = useCategories();
 
-  // Filter categories based on language selection
   const filteredCategories = categories?.filter((category) => {
     return category.language === languageFilter;
   });
 
-  // Filter exams by selected category
   const filteredExams = exams?.filter((exam) => {
     if (!selectedCategory) return false;
     return exam?.category?._id === selectedCategory && exam.status === "Published";
   });
-
-
 
   const handleStartCategoryRandomAssessment = async (category?: any, questionCount?: string) => {
     const targetCategory = category || selectedCategoryForRandom;
@@ -74,7 +69,7 @@ export default function AssessmentsPage() {
     
     try {
       const response = await axios.get(`/questions/random/category/${targetCategory._id}?count=${targetQuestionCount}&language=${languageFilter}`, {
-        timeout: 10000 // 10 second timeout
+        timeout: 10000
       });
       window.sessionStorage.setItem('lastCategoryRandomApiResponse', JSON.stringify(response.data));
       const questions = response.data.questions || [];
@@ -93,7 +88,7 @@ export default function AssessmentsPage() {
     
     try {
       const response = await axios.get(`/questions/random?count=${count}&language=${language}`, {
-        timeout: 10000 // 10 second timeout
+        timeout: 10000
       });
       window.sessionStorage.setItem('lastRandomApiResponse', JSON.stringify(response.data));
       const questions = response.data.questions || [];
@@ -105,11 +100,9 @@ export default function AssessmentsPage() {
     }
   };
 
-  // useEffect to handle navigation when random questions are loaded
   useEffect(() => {
     if (isStartingCustom && randomQuestions && randomQuestions.length > 0) {
       
-      // Get duration and language from the last random API response if available
       let duration = parseInt(questionCount);
       let language = "English";
       try {
@@ -121,7 +114,6 @@ export default function AssessmentsPage() {
         }
       } catch {}
 
-      // Create a temporary exam object with the random questions
       const tempExam = {
         _id: `temp-${Date.now()}`,
         title: `General Assessment (${questionCount} Questions)`,
@@ -135,23 +127,18 @@ export default function AssessmentsPage() {
         createdAt: new Date().toISOString(),
       };
 
-      // Store the exam in sessionStorage for the assessment page
       sessionStorage.setItem("tempExam", JSON.stringify(tempExam));
       
-      // Reset the state
       setIsStartingCustom(false);
       setIsLoadingRandom(false);
       
-      // Navigate to the assessment immediately
       router.push(`/dashboard/assessments/start?id=${tempExam._id}`);
     }
   }, [isStartingCustom, randomQuestions, questionCount, router]);
 
-  // useEffect to handle navigation when category random questions are loaded
   useEffect(() => {
     if (isStartingCategoryRandom && categoryRandomQuestions && categoryRandomQuestions.length > 0) {
       
-      // Get duration from the last random API response if available
       let duration = parseInt(categoryQuestionCount);
       try {
         const lastRandomApi = window.sessionStorage.getItem('lastCategoryRandomApiResponse');
@@ -161,7 +148,6 @@ export default function AssessmentsPage() {
         }
       } catch {}
 
-      // Create a temporary exam object with the random questions
       const tempExam = {
         _id: `temp-category-${Date.now()}`,
         title: `${selectedCategoryForRandom?.categoryName} Assessment (${categoryQuestionCount} Questions)`,
@@ -175,36 +161,32 @@ export default function AssessmentsPage() {
         createdAt: new Date().toISOString(),
       };
 
-      // Store the exam in sessionStorage for the assessment page
       sessionStorage.setItem("tempExam", JSON.stringify(tempExam));
       
-      // Reset the state
       setIsStartingCategoryRandom(false);
       setIsLoadingCategoryRandom(false);
       
-      // Navigate to the assessment immediately
       router.push(`/dashboard/assessments/start?id=${tempExam._id}`);
     }
   }, [isStartingCategoryRandom, categoryRandomQuestions, categoryQuestionCount, selectedCategoryForRandom, languageFilter, router]);
 
-  // Show loading state when fetching random questions
   if ((isStartingCustom && isLoadingRandom) || (isStartingCategoryRandom && isLoadingCategoryRandom)) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
         <div>
-          <h1 className="text-2xl font-bold mb-2">Assessments</h1>
-          <p className="text-gray-600">
+          <h1 className="text-lg sm:text-xl lg:text-2xl font-bold mb-2">Assessments</h1>
+          <p className="text-gray-600 text-sm lg:text-base">
             Discover your skill level and receive customized learning
             recommendations.
           </p>
         </div>
 
         <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center space-y-4">
-            <div className="w-16 h-16 bg-transparent rounded-full border-2 border-[#1045A1] border-b-transparent animate-spin mx-auto"></div>
+          <div className="text-center space-y-3 sm:space-y-4">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 bg-transparent rounded-full border-2 border-[#1045A1] border-b-transparent animate-spin mx-auto"></div>
             <div>
-              <h3 className="text-lg font-semibold text-[#1045A1]">Preparing Your Assessment</h3>
-              <p className="text-gray-600">
+              <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-[#1045A1]">Preparing Your Assessment</h3>
+              <p className="text-gray-600 text-xs sm:text-sm lg:text-base">
                 {isStartingCustom 
                   ? `Loading ${questionCount} questions for general assessment...`
                   : `Loading ${categoryQuestionCount} questions for ${selectedCategoryForRandom?.categoryName}...`
@@ -219,15 +201,15 @@ export default function AssessmentsPage() {
 
   if (isLoadingExams || isLoadingCategories) {
     return (
-      <div className="space-y-6">
-        <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-2" />
-        <div className="h-6 w-96 bg-gray-200 rounded animate-pulse" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
+        <div className="h-6 lg:h-8 w-32 lg:w-48 bg-gray-200 rounded animate-pulse mb-2" />
+        <div className="h-4 lg:h-6 w-64 lg:w-96 bg-gray-200 rounded animate-pulse" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="border rounded-lg p-6 space-y-4">
-              <div className="h-6 w-3/4 bg-gray-200 rounded animate-pulse" />
-              <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse" />
-              <div className="h-4 w-1/3 bg-gray-200 rounded animate-pulse" />
+            <div key={i} className="border rounded-lg p-3 sm:p-4 lg:p-6 space-y-2 sm:space-y-3 lg:space-y-4">
+              <div className="h-4 lg:h-6 w-3/4 bg-gray-200 rounded animate-pulse" />
+              <div className="h-3 lg:h-4 w-1/2 bg-gray-200 rounded animate-pulse" />
+              <div className="h-3 lg:h-4 w-1/3 bg-gray-200 rounded animate-pulse" />
             </div>
           ))}
         </div>
@@ -236,24 +218,24 @@ export default function AssessmentsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
       <div>
-        <h1 className="text-2xl font-bold mb-2">Assessments</h1>
-        <p className="text-gray-600">
+        <h1 className="text-lg sm:text-xl lg:text-2xl font-bold mb-2">Assessments</h1>
+        <p className="text-gray-600 text-sm lg:text-base">
           Discover your skill level and receive customized learning
           recommendations.
         </p>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
+      <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4">
         <div className="flex gap-2">
           <Button
             variant={activeTab === "category" ? "default" : "ghost"}
-            className={
+            className={`text-sm lg:text-base ${
               activeTab === "category"
                 ? "bg-[#E6EDF7] text-[#1045A1] hover:bg-blue-100"
                 : ""
-            }
+            }`}
             onClick={() => {
               setActiveTab("category");
               setSelectedCategory(undefined);
@@ -263,25 +245,24 @@ export default function AssessmentsPage() {
           </Button>
           <Button
             variant={activeTab === "general" ? "default" : "ghost"}
-            className={
+            className={`text-sm lg:text-base ${
               activeTab === "general"
                 ? "bg-[#E6EDF7] text-[#1045A1] hover:bg-blue-100"
                 : ""
-            }
+            }`}
             onClick={() => setActiveTab("general")}
           >
             General
           </Button>
         </div>
 
-        {/* Language Filter - Show for both tabs */}
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Language:</span>
+          <span className="text-xs lg:text-sm text-gray-600">Language:</span>
           <Select
             value={languageFilter}
             onValueChange={(value: "ENG" | "KIN") => setLanguageFilter(value)}
           >
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-28 sm:w-32 lg:w-40 text-xs lg:text-sm">
               <SelectValue placeholder="Select language" />
             </SelectTrigger>
             <SelectContent>
@@ -295,10 +276,8 @@ export default function AssessmentsPage() {
       {activeTab === "category" ? (
         <div>
           {!selectedCategory ? (
-            // Show categories grid
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
               {filteredCategories?.map((category) => {
-                // Count published exams for this category
                 const categoryExams = exams?.filter(
                   (exam) => exam?.category?._id === category._id && exam.status === "Published"
                 ) || [];
@@ -309,9 +288,9 @@ export default function AssessmentsPage() {
                     className="border rounded-lg overflow-hidden hover:border-[#1045A1] transition-colors cursor-pointer"
                     onClick={() => setSelectedCategory(category._id)}
                   >
-                    <div className="p-6 space-y-4">
+                    <div className="p-3 sm:p-4 lg:p-6 space-y-2 sm:space-y-3 lg:space-y-4">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-semibold">{category.categoryName}</h3>
+                        <h3 className="font-semibold text-sm lg:text-base">{category.categoryName}</h3>
                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                           category.language === "ENG" 
                             ? "bg-blue-100 text-blue-700" 
@@ -320,8 +299,8 @@ export default function AssessmentsPage() {
                           {category.language === "ENG" ? "English" : "Kinyarwanda"}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600">{category.description}</p>
-                      <div className="flex items-center justify-between text-sm text-gray-500">
+                      <p className="text-xs lg:text-sm text-gray-600">{category.description}</p>
+                      <div className="flex items-center justify-between text-xs lg:text-sm text-gray-500">
                         <span>{categoryExams.length} Available Exams</span>
                         <span>Click to view</span>
                       </div>
@@ -331,31 +310,29 @@ export default function AssessmentsPage() {
               })}
             </div>
           ) : (
-            // Show category assessment cards
-            <div className="space-y-6">
-              <div className="flex items-center gap-4 mb-6">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
                 <Button
                   variant="outline"
                   onClick={() => setSelectedCategory(undefined)}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 text-sm lg:text-base"
                 >
                   ← Back to Categories
                 </Button>
-                <h2 className="text-xl font-semibold">
+                <h2 className="text-base sm:text-lg lg:text-xl font-semibold">
                   {categories?.find((c) => c._id === selectedCategory)?.categoryName} Assessments
                 </h2>
               </div>
               
               <div>
-                <h3 className="text-lg font-semibold mb-4">Category Assessments</h3>
-                <p className="text-sm text-gray-600 mb-6">
+                <h3 className="text-sm sm:text-base lg:text-lg font-semibold mb-2 sm:mb-3 lg:mb-4">Category Assessments</h3>
+                <p className="text-xs lg:text-sm text-gray-600 mb-3 sm:mb-4 lg:mb-6">
                   Choose your preferred assessment size with questions from {categories?.find((c) => c._id === selectedCategory)?.categoryName}
                 </p>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* 10 Questions Card */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
                   <div 
-                    className="border-2 border-[#1045A1] rounded-lg p-4 hover:border-[#0D3A8B] hover:bg-blue-50 transition-colors cursor-pointer bg-white relative"
+                    className="border-2 border-[#1045A1] rounded-lg p-3 lg:p-4 hover:border-[#0D3A8B] hover:bg-blue-50 transition-colors cursor-pointer bg-white relative"
                     onClick={() => {
                       const category = categories?.find((c) => c._id === selectedCategory);
                       if (category) {
@@ -366,19 +343,18 @@ export default function AssessmentsPage() {
                     }}
                   >
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-800 mb-1">10</div>
-                      <h3 className="font-semibold mb-1 text-gray-800 text-sm">Quick Assessment</h3>
+                      <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-1">10</div>
+                      <h3 className="font-semibold mb-1 text-gray-800 text-xs lg:text-sm">Quick Assessment</h3>
                       <p className="text-xs text-gray-600 mb-2">Perfect for a quick practice session</p>
                       
-                      <div className="text-[#1045A1] font-semibold text-sm">
+                      <div className="text-[#1045A1] font-semibold text-xs lg:text-sm">
                         {isStartingCategoryRandom && categoryQuestionCount === "10" ? "Loading..." : "Click to Start"}
                       </div>
                     </div>
                   </div>
 
-                  {/* 20 Questions Card (Recommended) */}
                   <div 
-                    className="border-2 border-[#1045A1] rounded-lg p-4 bg-white relative shadow-lg hover:border-[#0D3A8B] hover:bg-blue-50 transition-colors cursor-pointer"
+                    className="border-2 border-[#1045A1] rounded-lg p-3 lg:p-4 bg-white relative shadow-lg hover:border-[#0D3A8B] hover:bg-blue-50 transition-colors cursor-pointer"
                     onClick={() => {
                       const category = categories?.find((c) => c._id === selectedCategory);
                       if (category) {
@@ -395,19 +371,18 @@ export default function AssessmentsPage() {
                     </div>
                     
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-800 mb-1">20</div>
-                      <h3 className="font-semibold mb-1 text-gray-800 text-sm">Standard Assessment</h3>
+                      <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-1">20</div>
+                      <h3 className="font-semibold mb-1 text-gray-800 text-xs lg:text-sm">Standard Assessment</h3>
                       <p className="text-xs text-gray-600 mb-2">Balanced assessment for comprehensive practice</p>
                       
-                      <div className="text-[#1045A1] font-semibold text-sm">
+                      <div className="text-[#1045A1] font-semibold text-xs lg:text-sm">
                         {isStartingCategoryRandom && categoryQuestionCount === "20" ? "Loading..." : "Click to Start"}
                       </div>
                     </div>
                   </div>
 
-                  {/* 50 Questions Card */}
                   <div 
-                    className="border-2 border-[#1045A1] rounded-lg p-4 hover:border-[#0D3A8B] hover:bg-blue-50 transition-colors cursor-pointer bg-white relative"
+                    className="border-2 border-[#1045A1] rounded-lg p-3 lg:p-4 hover:border-[#0D3A8B] hover:bg-blue-50 transition-colors cursor-pointer bg-white relative"
                 onClick={() => {
                       const category = categories?.find((c) => c._id === selectedCategory);
                       if (category) {
@@ -418,11 +393,11 @@ export default function AssessmentsPage() {
                     }}
                   >
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-800 mb-1">50</div>
-                      <h3 className="font-semibold mb-1 text-gray-800 text-sm">Comprehensive Assessment</h3>
+                      <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-1">50</div>
+                      <h3 className="font-semibold mb-1 text-gray-800 text-xs lg:text-sm">Comprehensive Assessment</h3>
                       <p className="text-xs text-gray-600 mb-2">In-depth assessment for thorough evaluation</p>
                       
-                      <div className="text-[#1045A1] font-semibold text-sm">
+                      <div className="text-[#1045A1] font-semibold text-xs lg:text-sm">
                         {isStartingCategoryRandom && categoryQuestionCount === "50" ? "Loading..." : "Click to Start"}
                       </div>
                     </div>
@@ -433,36 +408,33 @@ export default function AssessmentsPage() {
           )}
         </div>
       ) : (
-        <div className="space-y-6">
-          {/* General Assessment Cards */}
+        <div className="space-y-4 sm:space-y-6">
           <div>
-            <h3 className="text-lg font-semibold mb-4">General Assessments</h3>
-            <p className="text-sm text-gray-600 mb-6">
+            <h3 className="text-sm sm:text-base lg:text-lg font-semibold mb-2 sm:mb-3 lg:mb-4">General Assessments</h3>
+            <p className="text-xs lg:text-sm text-gray-600 mb-3 sm:mb-4 lg:mb-6">
               Choose your preferred assessment size with questions from all categories
             </p>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* 10 Questions Card */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
               <div 
-                className="border-2 border-[#1045A1] rounded-lg p-4 hover:border-[#0D3A8B] hover:bg-blue-50 transition-colors cursor-pointer bg-white relative"
+                className="border-2 border-[#1045A1] rounded-lg p-3 lg:p-4 hover:border-[#0D3A8B] hover:bg-blue-50 transition-colors cursor-pointer bg-white relative"
                 onClick={() => {
                   handleStartGeneralAssessment("10", languageFilter);
                 }}
               >
                                   <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-800 mb-1">10</div>
-                    <h3 className="font-semibold mb-1 text-gray-800 text-sm">Quick Assessment</h3>
+                    <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-1">10</div>
+                    <h3 className="font-semibold mb-1 text-gray-800 text-xs lg:text-sm">Quick Assessment</h3>
                     <p className="text-xs text-gray-600 mb-2">Perfect for a quick practice session</p>
                     
-                    <div className="text-[#1045A1] font-semibold text-sm">
+                    <div className="text-[#1045A1] font-semibold text-xs lg:text-sm">
                       {isStartingCustom && questionCount === "10" ? "Loading..." : "Click to Start"}
                     </div>
                   </div>
               </div>
 
-              {/* 20 Questions Card (Recommended) */}
               <div 
-                className="border-2 border-[#1045A1] rounded-lg p-4 bg-white relative shadow-lg hover:border-[#0D3A8B] hover:bg-blue-50 transition-colors cursor-pointer"
+                className="border-2 border-[#1045A1] rounded-lg p-3 lg:p-4 bg-white relative shadow-lg hover:border-[#0D3A8B] hover:bg-blue-50 transition-colors cursor-pointer"
                 onClick={() => {
                   handleStartGeneralAssessment("20", languageFilter);
                 }}
@@ -474,29 +446,28 @@ export default function AssessmentsPage() {
                 </div>
                 
                                   <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-800 mb-1">20</div>
-                    <h3 className="font-semibold mb-1 text-gray-800 text-sm">Standard Assessment</h3>
+                    <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-1">20</div>
+                    <h3 className="font-semibold mb-1 text-gray-800 text-xs lg:text-sm">Standard Assessment</h3>
                     <p className="text-xs text-gray-600 mb-2">Balanced assessment for comprehensive practice</p>
                     
-                    <div className="text-[#1045A1] font-semibold text-sm">
+                    <div className="text-[#1045A1] font-semibold text-xs lg:text-sm">
                       {isStartingCustom && questionCount === "20" ? "Loading..." : "Click to Start"}
                     </div>
                   </div>
               </div>
 
-              {/* 50 Questions Card */}
               <div 
-                className="border-2 border-[#1045A1] rounded-lg p-4 hover:border-[#0D3A8B] hover:bg-blue-50 transition-colors cursor-pointer bg-white relative"
+                className="border-2 border-[#1045A1] rounded-lg p-3 lg:p-4 hover:border-[#0D3A8B] hover:bg-blue-50 transition-colors cursor-pointer bg-white relative"
                 onClick={() => {
                   handleStartGeneralAssessment("50", languageFilter);
                 }}
               >
                                   <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-800 mb-1">50</div>
-                    <h3 className="font-semibold mb-1 text-gray-800 text-sm">Comprehensive Assessment</h3>
-                    <p className="text-sm text-gray-600 mb-2">In-depth assessment for thorough evaluation</p>
+                    <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-1">50</div>
+                    <h3 className="font-semibold mb-1 text-gray-800 text-xs lg:text-sm">Comprehensive Assessment</h3>
+                    <p className="text-xs lg:text-sm text-gray-600 mb-2">In-depth assessment for thorough evaluation</p>
                     
-                    <div className="text-[#1045A1] font-semibold text-sm">
+                    <div className="text-[#1045A1] font-semibold text-xs lg:text-sm">
                       {isStartingCustom && questionCount === "50" ? "Loading..." : "Click to Start"}
                     </div>
                   </div>
@@ -508,11 +479,8 @@ export default function AssessmentsPage() {
         </div>
       )}
 
-
-
-      {/* Category Random Assessment Dialog */}
       <Dialog open={showCategoryRandomDialog} onOpenChange={setShowCategoryRandomDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-md sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Create Random Assessment</DialogTitle>
             <DialogDescription>
@@ -521,49 +489,48 @@ export default function AssessmentsPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6">
-            {/* Question Count Selection */}
+          <div className="space-y-4 sm:space-y-6">
             <div>
               <h4 className="font-medium mb-3">Select Number of Questions</h4>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div
-                  className={`border rounded-lg p-4 cursor-pointer text-center ${
+                  className={`border rounded-lg p-3 sm:p-4 cursor-pointer text-center ${
                     categoryQuestionCount === "20" ? "border-[#1045A1] bg-[#E6EDF7]" : ""
                   }`}
                   onClick={() => setCategoryQuestionCount("20")}
                 >
-                  <h3 className="font-semibold">20 Questions</h3>
-                  <p className="text-sm text-gray-600">Quick assessment - 20 minutes</p>
+                  <h3 className="font-semibold text-sm lg:text-base">20 Questions</h3>
+                  <p className="text-xs sm:text-sm text-gray-600">Quick assessment - 20 minutes</p>
                 </div>
 
                 <div
-                  className={`border rounded-lg p-4 cursor-pointer text-center ${
+                  className={`border rounded-lg p-3 sm:p-4 cursor-pointer text-center ${
                     categoryQuestionCount === "30" ? "border-[#1045A1] bg-[#E6EDF7]" : ""
                   }`}
                   onClick={() => setCategoryQuestionCount("30")}
                 >
-                  <h3 className="font-semibold">30 Questions</h3>
-                  <p className="text-sm text-gray-600">Standard assessment - 30 minutes</p>
+                  <h3 className="font-semibold text-sm lg:text-base">30 Questions</h3>
+                  <p className="text-xs sm:text-sm text-gray-600">Standard assessment - 30 minutes</p>
                 </div>
 
                 <div
-                  className={`border rounded-lg p-4 cursor-pointer text-center ${
+                  className={`border rounded-lg p-3 sm:p-4 cursor-pointer text-center ${
                     categoryQuestionCount === "40" ? "border-[#1045A1] bg-[#E6EDF7]" : ""
                   }`}
                   onClick={() => setCategoryQuestionCount("40")}
                 >
-                  <h3 className="font-semibold">40 Questions</h3>
-                  <p className="text-sm text-gray-600">Extended assessment - 40 minutes</p>
+                  <h3 className="font-semibold text-sm lg:text-base">40 Questions</h3>
+                  <p className="text-xs sm:text-sm text-gray-600">Extended assessment - 40 minutes</p>
                 </div>
 
                 <div
-                  className={`border rounded-lg p-4 cursor-pointer text-center ${
+                  className={`border rounded-lg p-3 sm:p-4 cursor-pointer text-center ${
                     categoryQuestionCount === "50" ? "border-[#1045A1] bg-[#E6EDF7]" : ""
                   }`}
                   onClick={() => setCategoryQuestionCount("50")}
                 >
-                  <h3 className="font-semibold">50 Questions</h3>
-                  <p className="text-sm text-gray-600">Comprehensive assessment - 50 minutes</p>
+                  <h3 className="font-semibold text-sm lg:text-base">50 Questions</h3>
+                  <p className="text-xs sm:text-sm text-gray-600">Comprehensive assessment - 50 minutes</p>
                 </div>
               </div>
             </div>

@@ -42,24 +42,24 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
+    <div className="max-w-2xl mx-auto space-y-6 sm:space-y-8 overflow-x-hidden">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold">Settings</h1>
-        <p className="text-gray-600">Update your account settings</p>
+        <h1 className="text-xl sm:text-2xl font-bold">Settings</h1>
+        <p className="text-gray-600 text-sm lg:text-base">Update your account settings</p>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Phone Number</h2>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8">
+          <Card className="p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Phone Number</h2>
             <FormField
               control={form.control}
               name="phoneNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
+                  <FormLabel className="text-sm lg:text-base">Phone Number</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} className="h-10 sm:h-11 lg:h-12 text-sm lg:text-base" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -67,21 +67,21 @@ export default function SettingsPage() {
             />
           </Card>
 
-          <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Change Password</h2>
-            <div className="space-y-4">
+          <Card className="p-4 sm:p-6">
+            <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Change Password</h2>
+            <div className="space-y-3 sm:space-y-4">
               <FormField
                 control={form.control}
                 name="currentPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Current Password</FormLabel>
+                    <FormLabel className="text-sm lg:text-base">Current Password</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
                           {...field}
                           type={showCurrentPassword ? "text" : "password"}
-                          className="pr-10"
+                          className="pr-10 h-10 sm:h-11 lg:h-12 text-sm lg:text-base"
                         />
                         <button
                           type="button"
@@ -108,13 +108,13 @@ export default function SettingsPage() {
                 name="newPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>New Password</FormLabel>
+                    <FormLabel className="text-sm lg:text-base">New Password</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Input
                           {...field}
                           type={showNewPassword ? "text" : "password"}
-                          className="pr-10"
+                          className="pr-10 h-10 sm:h-11 lg:h-12 text-sm lg:text-base"
                         />
                         <button
                           type="button"
@@ -138,7 +138,7 @@ export default function SettingsPage() {
 
           <Button
             type="submit"
-            className="w-full bg-[#1045A1] hover:bg-[#0D3A8B]"
+            className="w-full bg-[#1045A1] hover:bg-[#0D3A8B] text-sm lg:text-base h-10 sm:h-11 lg:h-12"
             isLoading={isPending}
           >
             Save Changes

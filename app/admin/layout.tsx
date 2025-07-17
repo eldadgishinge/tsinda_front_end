@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell } from "lucide-react";
+import { Bell, Menu, X } from "lucide-react";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { UserNav } from "@/components/user-nav";
@@ -8,7 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import type React from "react";
 import { useUser } from "@/hooks/use-auth";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface NavItem {
   href: string;
@@ -146,6 +146,7 @@ export default function AdminLayout({
   const { data: user, isLoading } = useUser();
   const router = useRouter();
   const pathname = usePathname();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoading) {
@@ -174,75 +175,109 @@ export default function AdminLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className="fixed left-0 top-0 h-full w-60 bg-white border-r">
-        <div className="">
-          <Image
-            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-hxaByNvU8TKzz1s5pL1JrvMKDa9Bvn.png"
-            alt="Tsindacyane Logo"
-            width={150}
-            height={30}
-            className="w-[150px] h-auto"
-          />
-        </div>
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-        <nav className="px-3 py-4">
-          <div className="space-y-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex text-sm items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
-                  isActive(item.href)
-                    ? "text-[#1045A1] bg-blue-50"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </Link>
-            ))}
+      <div className="flex h-screen">
+        {/* Sidebar */}
+        <aside className={`fixed left-0 top-0 h-full bg-white border-r z-50 transition-transform duration-300 ease-in-out ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } lg:translate-x-0 lg:relative lg:z-auto w-60 flex-shrink-0 flex flex-col`}>
+          {/* Logo Section */}
+          <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
+            <Image
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-hxaByNvU8TKzz1s5pL1JrvMKDa9Bvn.png"
+              alt="Tsindacyane Logo"
+              width={150}
+              height={30}
+              className="w-[120px] lg:w-[150px] h-auto"
+            />
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden p-1 rounded-md hover:bg-gray-100"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-        </nav>
-      </aside>
 
-      {/* Main Content */}
-      <div className="ml-60">
-        {/* Header */}
-        <header className="bg-white border-b px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="w-72">
-              <div className="relative">
-                <Input type="search" placeholder="Search" className="pl-10" />
-                <svg
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+          {/* Navigation Section */}
+          <nav className="flex-1 px-3 py-4 overflow-y-auto">
+            <div className="space-y-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`flex text-sm items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                    isActive(item.href)
+                      ? "text-[#1045A1] bg-blue-50"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }`}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
+                  {item.icon}
+                  <span>{item.label}</span>
+                </Link>
+              ))}
             </div>
+          </nav>
+        </aside>
 
-            <div className="flex items-center space-x-4">
-              <button className="relative">
-                <Bell className="w-5 h-5 text-gray-600" />
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full" />
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Header */}
+          <header className="bg-white border-b px-4 lg:px-8 py-4 sticky top-0 z-30">
+            <div className="flex items-center justify-between">
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden p-2 rounded-md hover:bg-gray-100"
+              >
+                <Menu className="w-5 h-5" />
               </button>
 
-              <UserNav />
-            </div>
-          </div>
-        </header>
+              {/* Search Bar */}
+              <div className="flex-1 max-w-sm lg:max-w-xs mx-4 lg:mx-0">
+                <div className="relative">
+                  <Input type="search" placeholder="Search" className="pl-10 text-sm" />
+                  <svg
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+              </div>
 
-        {/* Page Content */}
-        <main className="p-8">{children}</main>
+              <div className="flex items-center space-x-2 lg:space-x-4">
+                <button className="relative">
+                  <Bell className="w-5 h-5 text-gray-600" />
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full" />
+                </button>
+
+                <UserNav />
+              </div>
+            </div>
+          </header>
+
+          {/* Page Content */}
+          <main className="flex-1 overflow-y-auto p-4 lg:p-8 w-full max-w-full">
+            <div className="w-full max-w-full overflow-x-hidden">
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );

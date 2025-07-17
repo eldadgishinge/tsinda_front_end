@@ -9,7 +9,6 @@ import axios from "@/lib/axios";
 import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
 
-// Separate component that uses useSearchParams
 function AssessmentContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -23,7 +22,6 @@ function AssessmentContent() {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
 
-  // Check for temporary exam in sessionStorage first
   const tempExam = examId?.startsWith("temp-") ? 
     JSON.parse(sessionStorage.getItem("tempExam") || "null") : null;
 
@@ -40,46 +38,18 @@ function AssessmentContent() {
     enabled: !!examId && !examId.startsWith("temp-"),
   });
 
-  // Use temp exam if available, otherwise use fetched exam
   const currentExam = tempExam || exam;
   const isTempExam = !!tempExam;
 
   console.log("Current exam:", currentExam);
   console.log("Is temp exam flag:", isTempExam);
 
-  // Remove auto-start for temp exams in useEffect
-  // useEffect(() => {
-  //   console.log("Auto-start useEffect triggered:", { isTempExam, tempExam, hasStarted });
-    
-  //   if (isTempExam && tempExam && !hasStarted) {
-  //     console.log("Auto-starting temp exam...");
-      
-  //     // Auto-start the assessment for temp exams
-  //     setAttemptId(`temp-attempt-${Date.now()}`);
-  //     setTimeRemaining(tempExam.duration * 60);
-  //     setHasStarted(true);
-      
-  //     // Request fullscreen
-  //     const element = document.documentElement;
-  //     if (element.requestFullscreen) {
-  //       element.requestFullscreen().catch(() => {
-  //         // If fullscreen fails, continue anyway
-  //         setIsFullscreen(true);
-  //       });
-  //     } else {
-  //       setIsFullscreen(true);
-  //     }
-  //   }
-  // }, [isTempExam, tempExam, hasStarted]);
-
   const startExam = async () => {
     setIsAttempting(true);
     try {
       if (isTempExam) {
-        // For temp exams, just start the assessment without backend
         setAttemptId(`temp-attempt-${Date.now()}`);
         setTimeRemaining(currentExam.duration * 60);
-        // Request fullscreen
         const element = document.documentElement;
         if (element.requestFullscreen) {
           await element.requestFullscreen();
@@ -87,14 +57,11 @@ function AssessmentContent() {
         setIsFullscreen(true);
         setHasStarted(true);
       } else {
-        // For regular exams, use the backend
         const response = await axios.post("/exam-attempts/start", {
           examId,
         });
         setAttemptId(response.data._id);
-        // Set initial time remaining in seconds
         setTimeRemaining(currentExam.duration * 60);
-        // Request fullscreen
         const element = document.documentElement;
         if (element.requestFullscreen) {
           await element.requestFullscreen();
@@ -115,11 +82,9 @@ function AssessmentContent() {
     setIsSubmitting(true);
     try {
       if (isTempExam) {
-        // For temp exams, save answers to sessionStorage for the completed page
         sessionStorage.setItem('tempAnswers', JSON.stringify(answers));
         router.push(`/dashboard/assessments/completed/${attemptId}`);
       } else {
-        // For regular exams, submit to backend
         await axios.put(`/exam-attempts/${attemptId}/complete`);
         router.push(`/dashboard/assessments/completed/${attemptId}`);
       }
@@ -162,20 +127,17 @@ function AssessmentContent() {
   const isLastQuestion = currentQuestionIndex === currentExam?.questions.length - 1;
   const isFirstQuestion = currentQuestionIndex === 0;
 
-  // Format time remaining
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  // Handle fullscreen change
   useEffect(() => {
     const handleFullscreenChange = () => {
       if (document.fullscreenElement) {
         setIsFullscreen(true);
       } else if (hasStarted) {
-        // Only submit if exam has started and user exits fullscreen
         submitExam();
       }
     };
@@ -186,7 +148,6 @@ function AssessmentContent() {
     };
   }, [hasStarted, submitExam]);
 
-  // Handle visibility change (tab change)
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && hasStarted) {
@@ -200,7 +161,6 @@ function AssessmentContent() {
     };
   }, [hasStarted, submitExam]);
 
-  // Countdown timer
   useEffect(() => {
     let interval: NodeJS.Timeout;
     
@@ -208,7 +168,6 @@ function AssessmentContent() {
       interval = setInterval(() => {
         setTimeRemaining(prev => {
           if (prev <= 1) {
-            // Time's up, submit exam
             submitExam();
             return 0;
           }
@@ -224,7 +183,6 @@ function AssessmentContent() {
     };
   }, [hasStarted, timeRemaining, submitExam]);
 
-  // Submit on unmount if exam is still ongoing
   useEffect(() => {
     return () => {
       if (hasStarted && !isFullscreen) {
@@ -249,7 +207,6 @@ function AssessmentContent() {
     );
   }
 
-  // For temp exams, show the Start Exam button (do not auto-start)
   if (!hasStarted) {
     return (
       <div className="max-w-2xl mx-auto p-6">
@@ -334,7 +291,6 @@ function AssessmentContent() {
 
     return (
       <div className="p-6 max-w-4xl mx-auto">
-        {/* Header with progress */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold">{currentExam.title}</h1>
           <div className="flex items-center space-x-4">
@@ -347,7 +303,6 @@ function AssessmentContent() {
           </div>
         </div>
 
-        {/* Progress bar */}
         <div className="w-full bg-gray-200 rounded-full h-2 mb-8">
           <div 
             className="bg-[#1045A1] h-2 rounded-full transition-all duration-300"
@@ -355,7 +310,6 @@ function AssessmentContent() {
           ></div>
         </div>
 
-        {/* Question */}
         <Card className="p-6 mb-8">
           <h3 className="text-lg font-medium mb-4">
             {currentQuestionIndex + 1}. {currentQuestion.text}
@@ -393,7 +347,6 @@ function AssessmentContent() {
           </div>
         </Card>
 
-        {/* Navigation buttons */}
         <div className="flex justify-between items-center">
           <Button
             variant="outline"
@@ -434,7 +387,6 @@ function AssessmentContent() {
           </div>
         </div>
 
-        {/* Question navigation dots */}
         <div className="flex justify-center mt-8 space-x-2">
           {currentExam.questions.map((_: any, index: number) => (
             <button
@@ -532,7 +484,6 @@ function AssessmentContent() {
   );
 }
 
-// Main component with Suspense
 export default function AssessmentStartPage() {
   return (
     <Suspense fallback={<div className="flex items-center justify-center min-h-[60vh]">

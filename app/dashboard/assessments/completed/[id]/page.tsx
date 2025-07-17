@@ -15,7 +15,6 @@ export default function AssessmentCompletedPage() {
   const attemptId = params.id as string
   const [tempResult, setTempResult] = useState<any>(null);
 
-  // Exit fullscreen when component mounts
   useEffect(() => {
     if (document.fullscreenElement) {
       document.exitFullscreen().catch((err) => {
@@ -24,14 +23,11 @@ export default function AssessmentCompletedPage() {
     }
   }, [])
 
-  // Handle temp/random exam attempts
   useEffect(() => {
     if (attemptId.startsWith('temp-')) {
-      // Get temp exam and answers from sessionStorage
       const tempExam = JSON.parse(sessionStorage.getItem('tempExam') || 'null');
       const tempAnswers = JSON.parse(sessionStorage.getItem('tempAnswers') || 'null');
       if (tempExam && tempAnswers) {
-        // Calculate score
         const answersArr = tempExam.questions.map((q: any, idx: number) => {
           const selectedOption = tempAnswers[q?._id];
           const isCorrect = selectedOption !== undefined && q?.answerOptions?.[selectedOption]?.isCorrect;
@@ -51,7 +47,7 @@ export default function AssessmentCompletedPage() {
           answers: answersArr,
         });
       } else {
-        setTempResult(undefined); // Not found
+        setTempResult(undefined);
       }
     }
   }, [attemptId]);
@@ -65,7 +61,6 @@ export default function AssessmentCompletedPage() {
     enabled: !!attemptId && !attemptId.startsWith('temp-'),
   })
 
-  // Function to shuffle array
   const shuffleArray = (array: any[]) => {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -75,13 +70,10 @@ export default function AssessmentCompletedPage() {
     return shuffled;
   };
 
-  // Function to handle retry
   const handleRetry = () => {
     if (attemptId.startsWith('temp-')) {
-      // For temp exams, restart with shuffled questions
       const tempExam = JSON.parse(sessionStorage.getItem('tempExam') || 'null');
       if (tempExam) {
-        // Create a new temp exam with shuffled questions
         const shuffledExam = {
           ...tempExam,
           _id: `temp-retry-${Date.now()}`,
@@ -89,15 +81,12 @@ export default function AssessmentCompletedPage() {
           questions: shuffleArray(tempExam.questions),
         };
         
-        // Clear previous answers and store shuffled exam
         sessionStorage.removeItem('tempAnswers');
         sessionStorage.setItem("tempExam", JSON.stringify(shuffledExam));
         
-        // Navigate back to start page
         router.push(`/dashboard/assessments/start?id=${shuffledExam._id}`);
       }
     } else {
-      // For regular exams, create a temp exam with shuffled questions
       if (attempt) {
         const tempExam = {
           _id: `temp-retry-${Date.now()}`,
@@ -112,11 +101,9 @@ export default function AssessmentCompletedPage() {
           createdAt: new Date().toISOString(),
         };
         
-        // Store the temp exam for retry
         sessionStorage.setItem("tempExam", JSON.stringify(tempExam));
         sessionStorage.removeItem('tempAnswers');
         
-        // Navigate to start page
         router.push(`/dashboard/assessments/start?id=${tempExam._id}`);
       }
     }
@@ -137,73 +124,72 @@ export default function AssessmentCompletedPage() {
         </div>
       )
     }
-    // Render temp/random exam result
     const { isPassed, score, exam, answers } = tempResult;
-      return (
-    <div className="max-w-4xl mx-auto p-6">
-      <Card className="p-8 mb-8">
-        {/* Retry Button inside Card */}
-        <div className="flex justify-end mb-6">
+    return (
+      <div className="max-w-4xl mx-auto p-4 lg:p-6">
+        <Card className="p-4 lg:p-8 mb-6 lg:mb-8">
+        <div className="flex justify-end mb-4 lg:mb-6">
           <Button 
             onClick={handleRetry}
             variant="outline"
-            className="flex items-center gap-2"
+            size="sm"
+            className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm h-8 lg:h-10 px-3 lg:px-4"
           >
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-3 w-3 lg:h-4 lg:w-4" />
             Retry Assessment
           </Button>
         </div>
         
-        <div className="text-center mb-8">
-          {isPassed ? (
-            <div className="text-green-500 mb-4">
-              <CheckCircle2 className="h-16 w-16 mx-auto" />
-              <h1 className="text-2xl font-bold mt-4">Congratulations!</h1>
-              <p className="text-gray-600">
-                You have passed the exam with a score of {score}%
-              </p>
-            </div>
-          ) : (
-            <div className="text-red-500 mb-4">
-              <XCircle className="h-16 w-16 mx-auto" />
-              <h1 className="text-2xl font-bold mt-4">Keep Practicing</h1>
-              <p className="text-gray-600">
-                You scored {score}%. The passing score was {exam.passingScore}%
-              </p>
-            </div>
-          )}
-        </div>
+          <div className="text-center mb-6 lg:mb-8">
+            {isPassed ? (
+              <div className="text-green-500 mb-4">
+                <CheckCircle2 className="h-12 w-12 lg:h-16 lg:w-16 mx-auto" />
+                <h1 className="text-xl lg:text-2xl font-bold mt-4">Congratulations!</h1>
+                <p className="text-gray-600 text-sm lg:text-base">
+                  You have passed the exam with a score of {score}%
+                </p>
+              </div>
+            ) : (
+              <div className="text-red-500 mb-4">
+                <XCircle className="h-12 w-12 lg:h-16 lg:w-16 mx-auto" />
+                <h1 className="text-xl lg:text-2xl font-bold mt-4">Keep Practicing</h1>
+                <p className="text-gray-600 text-sm lg:text-base">
+                  You scored {score}%. The passing score was {exam.passingScore}%
+                </p>
+              </div>
+            )}
+          </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className="text-sm text-gray-500">Total Questions</div>
-              <div className="text-2xl font-bold">{exam.questions.length}</div>
+          <div className="grid grid-cols-2 gap-3 lg:gap-4 mb-6 lg:mb-8">
+            <div className="text-center p-3 lg:p-4 bg-gray-50 rounded-lg">
+              <div className="text-xs lg:text-sm text-gray-500">Total Questions</div>
+              <div className="text-xl lg:text-2xl font-bold">{exam.questions.length}</div>
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className="text-sm text-gray-500">Correct Answers</div>
-              <div className="text-2xl font-bold">
+            <div className="text-center p-3 lg:p-4 bg-gray-50 rounded-lg">
+              <div className="text-xs lg:text-sm text-gray-500">Correct Answers</div>
+              <div className="text-xl lg:text-2xl font-bold">
                 {answers.filter((a: any) => a.isCorrect).length}
               </div>
             </div>
           </div>
 
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold">Review Questions</h2>
+          <div className="space-y-4 lg:space-y-6">
+            <h2 className="text-lg lg:text-xl font-semibold">Review Questions</h2>
             {answers.map((answer: any, index: number) => (
               <div
                 key={answer.questionId._id}
-                className={`p-6 rounded-lg border ${
+                className={`p-4 lg:p-6 rounded-lg border ${
                   answer.isCorrect ? "bg-green-50" : "bg-red-50"
                 }`}
               >
-                <div className="flex items-start justify-between mb-4">
-                  <h3 className="text-lg font-medium">
+                <div className="flex items-start justify-between mb-3 lg:mb-4">
+                  <h3 className="text-base lg:text-lg font-medium">
                     {index + 1}. {answer.questionId.text}
                   </h3>
                   {answer.isCorrect ? (
-                    <CheckCircle2 className="h-6 w-6 text-green-500" />
+                    <CheckCircle2 className="h-5 w-5 lg:h-6 lg:w-6 text-green-500" />
                   ) : (
-                    <XCircle className="h-6 w-6 text-red-500" />
+                    <XCircle className="h-5 w-5 lg:h-6 lg:w-6 text-red-500" />
                   )}
                 </div>
 
@@ -211,7 +197,7 @@ export default function AssessmentCompletedPage() {
                   <img
                     src={answer.questionId.imageUrl}
                     alt="Question"
-                    className="mb-4 rounded-lg"
+                    className="mb-3 lg:mb-4 rounded-lg"
                   />
                 )}
 
@@ -220,7 +206,7 @@ export default function AssessmentCompletedPage() {
                     (option: any, optionIndex: number) => (
                       <div
                         key={optionIndex}
-                        className={`p-3 rounded-lg border ${
+                        className={`p-2 lg:p-3 rounded-lg border text-sm lg:text-base ${
                           option.isCorrect
                             ? "bg-green-100 border-green-200"
                             : optionIndex === answer.selectedOption &&
@@ -231,11 +217,11 @@ export default function AssessmentCompletedPage() {
                       >
                         {option.text}
                         {option.isCorrect && (
-                          <span className="text-green-600 ml-2">(Correct)</span>
+                          <span className="text-green-600 ml-2 text-xs lg:text-sm">(Correct)</span>
                         )}
                         {optionIndex === answer.selectedOption &&
                           !option.isCorrect && (
-                            <span className="text-red-600 ml-2">
+                            <span className="text-red-600 ml-2 text-xs lg:text-sm">
                               (Your Answer)
                             </span>
                           )}
@@ -247,17 +233,21 @@ export default function AssessmentCompletedPage() {
             ))}
           </div>
 
-          <div className="mt-8 flex justify-center gap-4">
+          <div className="mt-6 lg:mt-8 flex flex-col sm:flex-row justify-center gap-3 lg:gap-4">
             <Button 
               onClick={handleRetry}
               variant="outline"
-              className="flex items-center gap-2"
+              size="sm"
+              className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm h-8 lg:h-10 px-3 lg:px-4 w-full sm:w-auto"
             >
-              <RotateCcw className="h-4 w-4" />
+              <RotateCcw className="h-3 w-3 lg:h-4 lg:w-4" />
               Retry Same Questions
             </Button>
-            <Link href="/dashboard/assessments">
-              <Button className="bg-[#1045A1] hover:bg-[#0D3A8B]">
+            <Link href="/dashboard/assessments" className="w-full sm:w-auto">
+              <Button 
+                size="sm"
+                className="bg-[#1045A1] hover:bg-[#0D3A8B] text-xs lg:text-sm h-8 lg:h-10 px-3 lg:px-4 w-full sm:w-auto"
+              >
                 Back to Assessments
               </Button>
             </Link>
@@ -284,34 +274,34 @@ export default function AssessmentCompletedPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <Card className="p-8 mb-8">
-        {/* Retry Button inside Card */}
-        <div className="flex justify-end mb-6">
+    <div className="max-w-4xl mx-auto p-4 lg:p-6">
+      <Card className="p-4 lg:p-8 mb-6 lg:mb-8">
+        <div className="flex justify-end mb-4 lg:mb-6">
           <Button 
             onClick={handleRetry}
             variant="outline"
-            className="flex items-center gap-2"
+            size="sm"
+            className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm h-8 lg:h-10 px-3 lg:px-4"
           >
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-3 w-3 lg:h-4 lg:w-4" />
             Retry Assessment
           </Button>
         </div>
         
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 lg:mb-8">
           {attempt.isPassed ? (
             <div className="text-green-500 mb-4">
-              <CheckCircle2 className="h-16 w-16 mx-auto" />
-              <h1 className="text-2xl font-bold mt-4">Congratulations!</h1>
-              <p className="text-gray-600">
+              <CheckCircle2 className="h-12 w-12 lg:h-16 lg:w-16 mx-auto" />
+              <h1 className="text-xl lg:text-2xl font-bold mt-4">Congratulations!</h1>
+              <p className="text-gray-600 text-sm lg:text-base">
                 You have passed the exam with a score of {attempt.score}%
               </p>
             </div>
           ) : (
             <div className="text-red-500 mb-4">
-              <XCircle className="h-16 w-16 mx-auto" />
-              <h1 className="text-2xl font-bold mt-4">Keep Practicing</h1>
-              <p className="text-gray-600">
+              <XCircle className="h-12 w-12 lg:h-16 lg:w-16 mx-auto" />
+              <h1 className="text-xl lg:text-2xl font-bold mt-4">Keep Practicing</h1>
+              <p className="text-gray-600 text-sm lg:text-base">
                 You scored {attempt.score}%. The passing score was{" "}
                 {attempt.exam.passingScore}%
               </p>
@@ -319,36 +309,36 @@ export default function AssessmentCompletedPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-sm text-gray-500">Total Questions</div>
-            <div className="text-2xl font-bold">{attempt.answers.length}</div>
+        <div className="grid grid-cols-2 gap-3 lg:gap-4 mb-6 lg:mb-8">
+          <div className="text-center p-3 lg:p-4 bg-gray-50 rounded-lg">
+            <div className="text-xs lg:text-sm text-gray-500">Total Questions</div>
+            <div className="text-xl lg:text-2xl font-bold">{attempt.answers.length}</div>
           </div>
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-sm text-gray-500">Correct Answers</div>
-            <div className="text-2xl font-bold">
+          <div className="text-center p-3 lg:p-4 bg-gray-50 rounded-lg">
+            <div className="text-xs lg:text-sm text-gray-500">Correct Answers</div>
+            <div className="text-xl lg:text-2xl font-bold">
               {attempt.answers.filter((a: any) => a.isCorrect).length}
             </div>
           </div>
         </div>
 
-        <div className="space-y-6">
-          <h2 className="text-xl font-semibold">Review Questions</h2>
+        <div className="space-y-4 lg:space-y-6">
+          <h2 className="text-lg lg:text-xl font-semibold">Review Questions</h2>
           {attempt.answers.map((answer: any, index: number) => (
             <div
               key={answer.questionId._id}
-              className={`p-6 rounded-lg border ${
+              className={`p-4 lg:p-6 rounded-lg border ${
                 answer.isCorrect ? "bg-green-50" : "bg-red-50"
               }`}
             >
-              <div className="flex items-start justify-between mb-4">
-                <h3 className="text-lg font-medium">
+              <div className="flex items-start justify-between mb-3 lg:mb-4">
+                <h3 className="text-base lg:text-lg font-medium">
                   {index + 1}. {answer.questionId.text}
                 </h3>
                 {answer.isCorrect ? (
-                  <CheckCircle2 className="h-6 w-6 text-green-500" />
+                  <CheckCircle2 className="h-5 w-5 lg:h-6 lg:w-6 text-green-500" />
                 ) : (
-                  <XCircle className="h-6 w-6 text-red-500" />
+                  <XCircle className="h-5 w-5 lg:h-6 lg:w-6 text-red-500" />
                 )}
               </div>
 
@@ -356,7 +346,7 @@ export default function AssessmentCompletedPage() {
                 <img
                   src={answer.questionId.imageUrl}
                   alt="Question"
-                  className="mb-4 rounded-lg"
+                  className="mb-3 lg:mb-4 rounded-lg"
                 />
               )}
 
@@ -365,7 +355,7 @@ export default function AssessmentCompletedPage() {
                   (option: any, optionIndex: number) => (
                     <div
                       key={optionIndex}
-                      className={`p-3 rounded-lg border ${
+                      className={`p-2 lg:p-3 rounded-lg border text-sm lg:text-base ${
                         option.isCorrect
                           ? "bg-green-100 border-green-200"
                           : optionIndex === answer.selectedOption &&
@@ -376,11 +366,11 @@ export default function AssessmentCompletedPage() {
                     >
                       {option.text}
                       {option.isCorrect && (
-                        <span className="text-green-600 ml-2">(Correct)</span>
+                        <span className="text-green-600 ml-2 text-xs lg:text-sm">(Correct)</span>
                       )}
                       {optionIndex === answer.selectedOption &&
                         !option.isCorrect && (
-                          <span className="text-red-600 ml-2">
+                          <span className="text-red-600 ml-2 text-xs lg:text-sm">
                             (Your Answer)
                           </span>
                         )}
@@ -392,17 +382,21 @@ export default function AssessmentCompletedPage() {
           ))}
         </div>
 
-        <div className="mt-8 flex justify-center gap-4">
+        <div className="mt-6 lg:mt-8 flex flex-col sm:flex-row justify-center gap-3 lg:gap-4">
           <Button 
             onClick={handleRetry}
             variant="outline"
-            className="flex items-center gap-2"
+            size="sm"
+            className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm h-8 lg:h-10 px-3 lg:px-4 w-full sm:w-auto"
           >
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-3 w-3 lg:h-4 lg:w-4" />
             Retry Same Questions
           </Button>
-          <Link href="/dashboard/assessments">
-            <Button className="bg-[#1045A1] hover:bg-[#0D3A8B]">
+          <Link href="/dashboard/assessments" className="w-full sm:w-auto">
+            <Button 
+              size="sm"
+              className="bg-[#1045A1] hover:bg-[#0D3A8B] text-xs lg:text-sm h-8 lg:h-10 px-3 lg:px-4 w-full sm:w-auto"
+            >
               Back to Assessments
             </Button>
           </Link>

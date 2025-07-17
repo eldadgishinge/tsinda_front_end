@@ -20,7 +20,7 @@ export function UserNav() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden">
+        <button className="w-7 h-7 lg:w-8 lg:h-8 rounded-full bg-gray-200 overflow-hidden hover:bg-gray-300 transition-colors">
           <img
             src="/placeholder.svg"
             alt="Profile"
@@ -28,22 +28,22 @@ export function UserNav() {
           />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[200px]">
+      <DropdownMenuContent align="end" className="w-[180px] lg:w-[200px]">
         <DropdownMenuItem asChild>
-          <Link href="/dashboard/profile" className="flex items-center">
+          <Link href="/dashboard/profile" className="flex items-center text-sm lg:text-base">
             <User className="mr-2 h-4 w-4" />
             <span>Profile</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/dashboard/settings" className="flex items-center">
+          <Link href="/dashboard/settings" className="flex items-center text-sm lg:text-base">
             <Settings className="mr-2 h-4 w-4" />
             <span>Settings</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem 
-          className="flex items-center text-[#1045A1] focus:text-[#1045A1] cursor-pointer"
+          className="flex items-center text-[#1045A1] focus:text-[#1045A1] cursor-pointer text-sm lg:text-base"
           onClick={handleLogout}
           disabled={logout.isPending}
         >

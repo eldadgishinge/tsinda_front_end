@@ -81,37 +81,40 @@ export default function UsersPage() {
     {
       id: "actions",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <Button
             variant="ghost"
             size="icon"
+            className="h-8 w-8 sm:h-9 sm:w-9"
             onClick={() => {
               setSelectedUser(row.original);
               setShowViewDialog(true);
             }}
           >
-            <Eye className="h-4 w-4 text-gray-500" />
+            <Eye className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
+            className="h-8 w-8 sm:h-9 sm:w-9"
             onClick={() => {
               setSelectedUser(row.original);
               setShowEditDialog(true);
             }}
           >
-            <Pencil className="h-4 w-4 text-gray-500" />
+            <Pencil className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
+            className="h-8 w-8 sm:h-9 sm:w-9"
             onClick={() => {
               setSelectedUser(row.original);
               setShowDeleteDialog(true);
             }}
             disabled={isDeleting}
           >
-            <Trash2 className="h-4 w-4 text-gray-500" />
+            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
           </Button>
         </div>
       ),
@@ -119,22 +122,22 @@ export default function UsersPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">User Management</h1>
+    <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+        <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">User Management</h1>
         <Button
-          className="bg-[#1045A1] hover:bg-[#0D3A8B]"
+          className="bg-[#1045A1] hover:bg-[#0D3A8B] text-sm lg:text-base"
           onClick={() => setShowAddDialog(true)}
         >
           ADD USER
         </Button>
       </div>
 
-      <div className="border rounded-lg bg-white">
-        <div className="p-4 flex items-center justify-between border-b">
+      <div className="border rounded-lg bg-white overflow-x-auto">
+        <div className="p-3 sm:p-4 flex items-center justify-between border-b">
           <div className="flex items-center gap-2">
-            <h2 className="font-semibold">Current Users</h2>
-            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+            <h2 className="font-semibold text-sm sm:text-base">Current Users</h2>
+            <span className="text-xs sm:text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
               {users?.length || 0} users
             </span>
           </div>
