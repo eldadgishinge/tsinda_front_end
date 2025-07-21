@@ -90,7 +90,7 @@ export function AddExamDialog({ open, onOpenChange }: AddExamDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Exam</DialogTitle>
         </DialogHeader>

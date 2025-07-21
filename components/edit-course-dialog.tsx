@@ -69,7 +69,7 @@ export function EditCourseDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-lg sm:max-w-xl md:max-w-2xl p-2 sm:p-6">
+      <DialogContent className="w-full max-w-lg sm:max-w-xl md:max-w-2xl p-2 sm:p-6 max-h-[90vh] overflow-y-auto">
         <div className="max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">Edit Course</DialogTitle>

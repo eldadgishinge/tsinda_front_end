@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
@@ -50,6 +51,7 @@ export function AddQuestionDialog({
     resolver: zodResolver(createQuestionSchema),
     defaultValues: {
       text: "",
+      imageUrl: "",
       answerOptions: [
         { text: "", isCorrect: true },
         { text: "", isCorrect: false },
@@ -59,6 +61,7 @@ export function AddQuestionDialog({
       difficulty: "Medium",
       status: "Active",
       category: undefined,
+      rightAnswerDescription: "",
     },
   });
 
@@ -73,7 +76,7 @@ export function AddQuestionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
             Add New Question
@@ -165,6 +168,24 @@ export function AddQuestionDialog({
                 })}
               </RadioGroup>
             </div>
+
+            <FormField
+              control={form.control}
+              name="rightAnswerDescription"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Right Answer Description (Optional)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      placeholder="Explain why this answer is correct..."
+                      className="min-h-[100px]"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField

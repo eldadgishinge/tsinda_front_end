@@ -480,7 +480,7 @@ export default function AssessmentsPage() {
       )}
 
       <Dialog open={showCategoryRandomDialog} onOpenChange={setShowCategoryRandomDialog}>
-        <DialogContent className="max-w-md sm:max-w-lg">
+        <DialogContent className="max-w-md sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create Random Assessment</DialogTitle>
             <DialogDescription>

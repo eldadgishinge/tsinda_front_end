@@ -152,7 +152,7 @@ export default function ContentManagementPage() {
       />
 
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-red-600">Delete Course</DialogTitle>
           </DialogHeader>

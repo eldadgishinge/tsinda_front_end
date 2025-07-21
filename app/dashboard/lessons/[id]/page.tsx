@@ -190,7 +190,7 @@ export default function LessonDetailsPage() {
 
       {/* Enrollment Dialog */}
       <Dialog open={showEnrollDialog} onOpenChange={setShowEnrollDialog}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Enroll in Course</DialogTitle>
             <DialogDescription>

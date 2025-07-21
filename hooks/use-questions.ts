@@ -35,6 +35,7 @@ export function useCreateQuestion() {
       difficulty: "Easy" | "Medium" | "Difficult";
       status: "Active" | "Inactive";
       category: string;
+      rightAnswerDescription?: string;
     }) => {
       const response = await axios.post("/questions", data);
       return response.data;
@@ -64,6 +65,7 @@ export function useUpdateQuestion() {
       difficulty: "Easy" | "Medium" | "Difficult";
       status: "Active" | "Inactive";
       category: string;
+      rightAnswerDescription?: string;
     }) => {
       const response = await axios.put(`/questions/${questionId}`, data);
       return response.data;

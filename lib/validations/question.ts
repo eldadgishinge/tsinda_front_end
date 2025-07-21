@@ -20,6 +20,7 @@ export const createQuestionSchema = z.object({
   category: z.string({
     required_error: "Please select a category",
   }),
+  rightAnswerDescription: z.string().optional(),
 });
 
 export type CreateQuestionForm = z.infer<typeof createQuestionSchema>;
@@ -38,5 +39,6 @@ export interface Question {
     _id: string;
     categoryName: string;
   };
+  rightAnswerDescription?: string;
   createdAt: string;
 }

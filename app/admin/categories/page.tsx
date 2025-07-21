@@ -152,7 +152,7 @@ export default function CategoriesPage() {
 
       {selectedCategory && (
         <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
-          <DialogContent className="max-w-sm sm:max-w-md">
+          <DialogContent className="max-w-sm sm:max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex flex-col items-center gap-2">
                 <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-green-100 flex items-center justify-center mb-2">
@@ -188,7 +188,7 @@ export default function CategoriesPage() {
 
       {selectedCategory && (
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent className="max-w-sm sm:max-w-md">
+          <DialogContent className="max-w-sm sm:max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-base sm:text-lg font-bold">Edit Category</DialogTitle>
             </DialogHeader>
@@ -243,7 +243,7 @@ export default function CategoriesPage() {
 
       {selectedCategory && (
         <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-          <DialogContent className="max-w-sm sm:max-w-md">
+          <DialogContent className="max-w-sm sm:max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-base sm:text-lg font-bold text-red-600">Delete Category</DialogTitle>
             </DialogHeader>

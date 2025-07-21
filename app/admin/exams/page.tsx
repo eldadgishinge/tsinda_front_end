@@ -122,7 +122,7 @@ export default function ExamsPage() {
       <AddExamDialog open={showAddDialog} onOpenChange={setShowAddDialog} />
 
       <Dialog open={!!examToDelete} onOpenChange={() => setExamToDelete(null)}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Delete Exam</DialogTitle>
             <DialogDescription>

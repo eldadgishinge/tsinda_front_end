@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
@@ -71,6 +72,7 @@ export function QuestionActionsDialog({
       difficulty: question?.difficulty || "Medium",
       status: question?.status || "Active",
       category: question?.category?._id,
+      rightAnswerDescription: question?.rightAnswerDescription || "",
     },
   });
 
@@ -88,6 +90,7 @@ export function QuestionActionsDialog({
         difficulty: question.difficulty || "Medium",
         status: question.status || "Active",
         category: question.category?._id,
+        rightAnswerDescription: question.rightAnswerDescription || "",
       });
     }
   }, [question, open, type, form]);
@@ -102,7 +105,7 @@ export function QuestionActionsDialog({
   if (type === "delete") {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Delete Question</DialogTitle>
             <DialogDescription>
@@ -159,6 +162,12 @@ export function QuestionActionsDialog({
             </div>
           ))}
         </div>
+        {question?.rightAnswerDescription && (
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <h4 className="font-medium text-blue-800 mb-2">Right Answer Explanation</h4>
+            <p className="text-blue-700 text-sm">{question.rightAnswerDescription}</p>
+          </div>
+        )}
       </div>
       <div className="grid grid-cols-2 gap-4 text-sm">
         <div>
@@ -182,7 +191,7 @@ export function QuestionActionsDialog({
   if (type === "view") {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Question Details</DialogTitle>
           </DialogHeader>
@@ -194,7 +203,7 @@ export function QuestionActionsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Question</DialogTitle>
         </DialogHeader>
@@ -298,6 +307,24 @@ export function QuestionActionsDialog({
                 })}
               </RadioGroup>
             </div>
+
+            <FormField
+              control={form.control}
+              name="rightAnswerDescription"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Right Answer Description (Optional)</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      placeholder="Explain why this answer is correct..."
+                      className="min-h-[100px]"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
