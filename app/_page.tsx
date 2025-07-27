@@ -308,7 +308,7 @@ export default function HomePage() {
             </div>
             <div className="flex flex-wrap gap-4 lg:gap-6 justify-center sm:justify-end">
               <Link
-                href="#"
+                href="/terms"
                 className="text-xs lg:text-sm text-gray-600 hover:text-gray-900"
               >
                 Terms of Service

@@ -272,7 +272,7 @@ export default function HomePage() {
               <CardContent className="p-6 lg:p-8 text-center">
                 <h3 className="text-lg lg:text-xl font-semibold mb-4">Advanced Plan</h3>
                 <div className="mb-4">
-                  <span className="text-4xl lg:text-5xl font-bold">5,000 RWF</span>
+                  <span className="text-4xl lg:text-5xl font-bold">3,500 RWF</span>
                   <span className="text-gray-600 ml-2 text-sm lg:text-base">per month</span>
                 </div>
                 <p className="text-gray-600 mb-6 lg:mb-8 text-sm lg:text-base">
@@ -413,7 +413,7 @@ export default function HomePage() {
               © {new Date().getFullYear()} Tsinda. All rights reserved.
             </div>
             <div className="flex flex-wrap gap-4 lg:gap-6">
-              <Link href="#" className="text-xs lg:text-sm text-gray-600 hover:text-gray-900">
+              <Link href="/terms" className="text-xs lg:text-sm text-gray-600 hover:text-gray-900">
                 Terms of Service
               </Link>
               <Link href="#" className="text-xs lg:text-sm text-gray-600 hover:text-gray-900">
