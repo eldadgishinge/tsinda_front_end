@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Upload } from "@/components/ui/upload";
 import Image from "next/image";
 
 export function EditCourseDialog({
@@ -38,6 +39,9 @@ export function EditCourseDialog({
     isPublished: false,
   });
 
+  const [newThumbnailUrl, setNewThumbnailUrl] = useState<string>("");
+  const [newDocumentUrl, setNewDocumentUrl] = useState<string>("");
+
   useEffect(() => {
     if (course) {
       setForm({
@@ -51,6 +55,8 @@ export function EditCourseDialog({
         documentUrl: course.documentUrl || "",
         isPublished: course.isPublished || false,
       });
+      setNewThumbnailUrl("");
+      setNewDocumentUrl("");
     }
   }, [course, open]);
 
@@ -62,9 +68,25 @@ export function EditCourseDialog({
     }));
   };
 
+  const handleThumbnailUpload = (url: string) => {
+    setNewThumbnailUrl(url);
+  };
+
+  const handleDocumentUpload = (url: string) => {
+    setNewDocumentUrl(url);
+  };
+
   const handleSubmit = (e: any) => {
     e.preventDefault();
-    onSubmit(form);
+    
+    // Use new uploaded URLs if available, otherwise keep existing ones
+    const submitData = {
+      ...form,
+      thumbnailUrl: newThumbnailUrl || form.thumbnailUrl,
+      documentUrl: newDocumentUrl || form.documentUrl,
+    };
+    
+    onSubmit(submitData);
   };
 
   return (
@@ -130,34 +152,106 @@ export function EditCourseDialog({
                 ))}
               </select>
             </div>
+            
+            {/* Thumbnail Upload Section */}
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Thumbnail URL</label>
-              <Input name="thumbnailUrl" value={form.thumbnailUrl} onChange={handleChange} />
-              {form.thumbnailUrl && (
-                <div className="mt-2 w-full flex justify-center">
-                  <div className="bg-gray-100 border rounded-xl shadow max-w-xs w-full flex items-center justify-center aspect-video overflow-hidden">
-                    <Image
-                      src={form.thumbnailUrl}
-                      alt="Thumbnail preview"
-                      width={320}
-                      height={180}
-                      className="object-cover w-full h-full"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/placeholder.jpg";
-                      }}
-                    />
+              <label className="block text-xs text-gray-500 mb-1">Thumbnail</label>
+              <div className="space-y-3">
+                {/* Current thumbnail preview */}
+                {form.thumbnailUrl && (
+                  <div className="mb-3">
+                    <p className="text-xs text-gray-600 mb-2">Current Thumbnail:</p>
+                    <div className="w-full flex justify-center">
+                      <div className="bg-gray-100 border rounded-xl shadow max-w-xs w-full flex items-center justify-center aspect-video overflow-hidden">
+                        <Image
+                          src={form.thumbnailUrl}
+                          alt="Current thumbnail"
+                          width={320}
+                          height={180}
+                          className="object-cover w-full h-full"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "/placeholder.jpg";
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
+                )}
+                
+                {/* Upload new thumbnail */}
+                <div>
+                  <p className="text-xs text-gray-600 mb-2">Upload New Thumbnail (optional):</p>
+                  <Upload
+                    type="image"
+                    onUploadComplete={handleThumbnailUpload}
+                    onRemove={() => setNewThumbnailUrl("")}
+                    defaultValue={newThumbnailUrl}
+                    maxSize={5}
+                  />
                 </div>
-              )}
+                
+                {/* Manual URL input as fallback */}
+                <div>
+                  <p className="text-xs text-gray-600 mb-2">Or enter thumbnail URL manually:</p>
+                  <Input 
+                    name="thumbnailUrl" 
+                    value={form.thumbnailUrl} 
+                    onChange={handleChange}
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </div>
+              </div>
             </div>
+            
             <div>
               <label className="block text-xs text-gray-500 mb-1">Video URL</label>
               <Input name="videoUrl" value={form.videoUrl} onChange={handleChange} />
             </div>
+            
+            {/* Document Upload Section */}
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Document URL</label>
-              <Input name="documentUrl" value={form.documentUrl} onChange={handleChange} />
+              <label className="block text-xs text-gray-500 mb-1">Course Notes</label>
+              <div className="space-y-3">
+                {/* Current document info */}
+                {form.documentUrl && (
+                  <div className="mb-3">
+                    <p className="text-xs text-gray-600 mb-2">Current Document:</p>
+                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                      <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span className="text-sm text-gray-700 truncate">
+                        {form.documentUrl.split('/').pop() || 'Course Document'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Upload new document */}
+                <div>
+                  <p className="text-xs text-gray-600 mb-2">Upload New Document (optional):</p>
+                  <Upload
+                    type="document"
+                    onUploadComplete={handleDocumentUpload}
+                    onRemove={() => setNewDocumentUrl("")}
+                    defaultValue={newDocumentUrl}
+                    maxSize={10}
+                  />
+                </div>
+                
+                {/* Manual URL input as fallback */}
+                <div>
+                  <p className="text-xs text-gray-600 mb-2">Or enter document URL manually:</p>
+                  <Input 
+                    name="documentUrl" 
+                    value={form.documentUrl} 
+                    onChange={handleChange}
+                    placeholder="https://example.com/document.pdf"
+                  />
+                </div>
+              </div>
             </div>
+            
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"

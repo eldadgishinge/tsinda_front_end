@@ -256,27 +256,37 @@ export default function AssessmentsPage() {
           </Button>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <span className="text-xs lg:text-sm text-gray-600">Language:</span>
-          <Select
-            value={languageFilter}
-            onValueChange={(value: "ENG" | "KIN") => setLanguageFilter(value)}
-          >
-            <SelectTrigger className="w-28 sm:w-32 lg:w-40 text-xs lg:text-sm">
-              <SelectValue placeholder="Select language" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ENG">English</SelectItem>
-              <SelectItem value="KIN">Kinyarwanda</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setLanguageFilter("ENG")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                languageFilter === "ENG"
+                  ? "bg-blue-100 text-blue-700 border border-blue-200"
+                  : "text-gray-700 hover:text-gray-900"
+              }`}
+            >
+              English
+            </button>
+            <button
+              onClick={() => setLanguageFilter("KIN")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                languageFilter === "KIN"
+                  ? "bg-blue-100 text-blue-700 border border-blue-200"
+                  : "text-gray-700 hover:text-gray-900"
+              }`}
+            >
+              Kinyarwanda
+            </button>
+          </div>
         </div>
       </div>
 
       {activeTab === "category" ? (
         <div>
           {!selectedCategory ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               {filteredCategories?.map((category) => {
                 const categoryExams = exams?.filter(
                   (exam) => exam?.category?._id === category._id && exam.status === "Published"
@@ -285,24 +295,48 @@ export default function AssessmentsPage() {
                 return (
                   <div
                     key={category._id}
-                    className="border rounded-lg overflow-hidden hover:border-[#1045A1] transition-colors cursor-pointer"
+                    className="group relative bg-white rounded-xl shadow-sm hover:shadow-lg border border-gray-100 overflow-hidden transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
                     onClick={() => setSelectedCategory(category._id)}
                   >
-                    <div className="p-3 sm:p-4 lg:p-6 space-y-2 sm:space-y-3 lg:space-y-4">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative p-6 space-y-4">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-sm lg:text-base">{category.categoryName}</h3>
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-[#1045A1] to-[#0D3A8B] rounded-lg flex items-center justify-center">
+                            <span className="text-white font-bold text-sm">
+                              {category.categoryName.charAt(0)}
+                            </span>
+                          </div>
+                          <h3 className="font-bold text-lg text-gray-900 group-hover:text-[#1045A1] transition-colors duration-300">
+                            {category.categoryName}
+                          </h3>
+                        </div>
+                        <span className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm ${
                           category.language === "ENG" 
-                            ? "bg-blue-100 text-blue-700" 
-                            : "bg-purple-100 text-purple-700"
+                            ? "bg-blue-100 text-blue-700 border border-blue-200" 
+                            : "bg-purple-100 text-purple-700 border border-purple-200"
                         }`}>
                           {category.language === "ENG" ? "English" : "Kinyarwanda"}
                         </span>
                       </div>
-                      <p className="text-xs lg:text-sm text-gray-600">{category.description}</p>
-                      <div className="flex items-center justify-between text-xs lg:text-sm text-gray-500">
-                        <span>{categoryExams.length} Available Exams</span>
-                        <span>Click to view</span>
+                      
+                      <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">
+                        {category.description}
+                      </p>
+                      
+                      <div className="flex items-center justify-between pt-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span className="text-sm font-medium text-gray-700">
+                            {categoryExams.length} Available Exams
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[#1045A1] font-medium text-sm group-hover:gap-3 transition-all duration-300">
+                          <span>View Exams</span>
+                          <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -330,9 +364,9 @@ export default function AssessmentsPage() {
                   Choose your preferred assessment size with questions from {categories?.find((c) => c._id === selectedCategory)?.categoryName}
                 </p>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                   <div 
-                    className="border-2 border-[#1045A1] rounded-lg p-3 lg:p-4 hover:border-[#0D3A8B] hover:bg-blue-50 transition-colors cursor-pointer bg-white relative"
+                    className="group relative bg-white rounded-xl shadow-sm hover:shadow-xl border border-gray-200 overflow-hidden transition-all duration-300 cursor-pointer transform hover:-translate-y-2 hover:scale-105"
                     onClick={() => {
                       const category = categories?.find((c) => c._id === selectedCategory);
                       if (category) {
@@ -342,19 +376,25 @@ export default function AssessmentsPage() {
                       }
                     }}
                   >
-                    <div className="text-center">
-                      <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-1">10</div>
-                      <h3 className="font-semibold mb-1 text-gray-800 text-xs lg:text-sm">Quick Assessment</h3>
-                      <p className="text-xs text-gray-600 mb-2">Perfect for a quick practice session</p>
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative p-6 text-center">
+                      <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <span className="text-white font-bold text-xl">10</span>
+                      </div>
+                      <h3 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-[#1045A1] transition-colors duration-300">Quick Assessment</h3>
+                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">Perfect for a quick practice session</p>
                       
-                      <div className="text-[#1045A1] font-semibold text-xs lg:text-sm">
-                        {isStartingCategoryRandom && categoryQuestionCount === "10" ? "Loading..." : "Click to Start"}
+                      <div className="flex items-center justify-center gap-2 text-[#1045A1] font-semibold text-sm group-hover:gap-3 transition-all duration-300">
+                        <span>{isStartingCategoryRandom && categoryQuestionCount === "10" ? "Loading..." : "Start Now"}</span>
+                        <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
                       </div>
                     </div>
                   </div>
 
                   <div 
-                    className="border-2 border-[#1045A1] rounded-lg p-3 lg:p-4 bg-white relative shadow-lg hover:border-[#0D3A8B] hover:bg-blue-50 transition-colors cursor-pointer"
+                    className="group relative bg-white rounded-xl shadow-lg hover:shadow-2xl border-2 border-[#1045A1] overflow-hidden transition-all duration-300 cursor-pointer transform hover:-translate-y-2 hover:scale-105"
                     onClick={() => {
                       const category = categories?.find((c) => c._id === selectedCategory);
                       if (category) {
@@ -364,26 +404,31 @@ export default function AssessmentsPage() {
                       }
                     }}
                   >
-                    <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
-                      <span className="bg-[#1045A1] text-white px-2 py-1 rounded-full text-xs font-semibold shadow-md">
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <span className="bg-gradient-to-r from-[#1045A1] to-[#0D3A8B] text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-lg">
                         RECOMMENDED
                       </span>
                     </div>
-                    
-                    <div className="text-center">
-                      <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-1">20</div>
-                      <h3 className="font-semibold mb-1 text-gray-800 text-xs lg:text-sm">Standard Assessment</h3>
-                      <p className="text-xs text-gray-600 mb-2">Balanced assessment for comprehensive practice</p>
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative p-6 text-center">
+                      <div className="w-16 h-16 bg-gradient-to-br from-[#1045A1] to-[#0D3A8B] rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <span className="text-white font-bold text-xl">20</span>
+                      </div>
+                      <h3 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-[#1045A1] transition-colors duration-300">Standard Assessment</h3>
+                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">Balanced assessment for comprehensive practice</p>
                       
-                      <div className="text-[#1045A1] font-semibold text-xs lg:text-sm">
-                        {isStartingCategoryRandom && categoryQuestionCount === "20" ? "Loading..." : "Click to Start"}
+                      <div className="flex items-center justify-center gap-2 text-[#1045A1] font-semibold text-sm group-hover:gap-3 transition-all duration-300">
+                        <span>{isStartingCategoryRandom && categoryQuestionCount === "20" ? "Loading..." : "Start Now"}</span>
+                        <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
                       </div>
                     </div>
                   </div>
 
                   <div 
-                    className="border-2 border-[#1045A1] rounded-lg p-3 lg:p-4 hover:border-[#0D3A8B] hover:bg-blue-50 transition-colors cursor-pointer bg-white relative"
-                onClick={() => {
+                    className="group relative bg-white rounded-xl shadow-sm hover:shadow-xl border border-gray-200 overflow-hidden transition-all duration-300 cursor-pointer transform hover:-translate-y-2 hover:scale-105"
+                    onClick={() => {
                       const category = categories?.find((c) => c._id === selectedCategory);
                       if (category) {
                         setSelectedCategoryForRandom(category);
@@ -392,13 +437,19 @@ export default function AssessmentsPage() {
                       }
                     }}
                   >
-                    <div className="text-center">
-                      <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-1">50</div>
-                      <h3 className="font-semibold mb-1 text-gray-800 text-xs lg:text-sm">Comprehensive Assessment</h3>
-                      <p className="text-xs text-gray-600 mb-2">In-depth assessment for thorough evaluation</p>
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative p-6 text-center">
+                      <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <span className="text-white font-bold text-xl">50</span>
+                      </div>
+                      <h3 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-[#1045A1] transition-colors duration-300">Comprehensive Assessment</h3>
+                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">In-depth assessment for thorough evaluation</p>
                       
-                      <div className="text-[#1045A1] font-semibold text-xs lg:text-sm">
-                        {isStartingCategoryRandom && categoryQuestionCount === "50" ? "Loading..." : "Click to Start"}
+                      <div className="flex items-center justify-center gap-2 text-[#1045A1] font-semibold text-sm group-hover:gap-3 transition-all duration-300">
+                        <span>{isStartingCategoryRandom && categoryQuestionCount === "50" ? "Loading..." : "Start Now"}</span>
+                        <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
                       </div>
                     </div>
                   </div>
@@ -415,62 +466,79 @@ export default function AssessmentsPage() {
               Choose your preferred assessment size with questions from all categories
             </p>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               <div 
-                className="border-2 border-[#1045A1] rounded-lg p-3 lg:p-4 hover:border-[#0D3A8B] hover:bg-blue-50 transition-colors cursor-pointer bg-white relative"
+                className="group relative bg-white rounded-xl shadow-sm hover:shadow-xl border border-gray-200 overflow-hidden transition-all duration-300 cursor-pointer transform hover:-translate-y-2 hover:scale-105"
                 onClick={() => {
                   handleStartGeneralAssessment("10", languageFilter);
                 }}
               >
-                                  <div className="text-center">
-                    <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-1">10</div>
-                    <h3 className="font-semibold mb-1 text-gray-800 text-xs lg:text-sm">Quick Assessment</h3>
-                    <p className="text-xs text-gray-600 mb-2">Perfect for a quick practice session</p>
-                    
-                    <div className="text-[#1045A1] font-semibold text-xs lg:text-sm">
-                      {isStartingCustom && questionCount === "10" ? "Loading..." : "Click to Start"}
-                    </div>
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative p-6 text-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <span className="text-white font-bold text-xl">10</span>
                   </div>
+                  <h3 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-[#1045A1] transition-colors duration-300">Quick Assessment</h3>
+                  <p className="text-sm text-gray-600 mb-4 leading-relaxed">Perfect for a quick practice session</p>
+                  
+                  <div className="flex items-center justify-center gap-2 text-[#1045A1] font-semibold text-sm group-hover:gap-3 transition-all duration-300">
+                    <span>{isStartingCustom && questionCount === "10" ? "Loading..." : "Start Now"}</span>
+                    <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               <div 
-                className="border-2 border-[#1045A1] rounded-lg p-3 lg:p-4 bg-white relative shadow-lg hover:border-[#0D3A8B] hover:bg-blue-50 transition-colors cursor-pointer"
+                className="group relative bg-white rounded-xl shadow-lg hover:shadow-2xl border-2 border-[#1045A1] overflow-hidden transition-all duration-300 cursor-pointer transform hover:-translate-y-2 hover:scale-105"
                 onClick={() => {
                   handleStartGeneralAssessment("20", languageFilter);
                 }}
               >
-                <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-[#1045A1] text-white px-2 py-1 rounded-full text-xs font-semibold shadow-md">
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <span className="bg-gradient-to-r from-[#1045A1] to-[#0D3A8B] text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-lg">
                     RECOMMENDED
                   </span>
                 </div>
-                
-                                  <div className="text-center">
-                    <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-1">20</div>
-                    <h3 className="font-semibold mb-1 text-gray-800 text-xs lg:text-sm">Standard Assessment</h3>
-                    <p className="text-xs text-gray-600 mb-2">Balanced assessment for comprehensive practice</p>
-                    
-                    <div className="text-[#1045A1] font-semibold text-xs lg:text-sm">
-                      {isStartingCustom && questionCount === "20" ? "Loading..." : "Click to Start"}
-                    </div>
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative p-6 text-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-[#1045A1] to-[#0D3A8B] rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <span className="text-white font-bold text-xl">20</span>
                   </div>
+                  <h3 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-[#1045A1] transition-colors duration-300">Standard Assessment</h3>
+                  <p className="text-sm text-gray-600 mb-4 leading-relaxed">Balanced assessment for comprehensive practice</p>
+                  
+                  <div className="flex items-center justify-center gap-2 text-[#1045A1] font-semibold text-sm group-hover:gap-3 transition-all duration-300">
+                    <span>{isStartingCustom && questionCount === "20" ? "Loading..." : "Start Now"}</span>
+                    <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               <div 
-                className="border-2 border-[#1045A1] rounded-lg p-3 lg:p-4 hover:border-[#0D3A8B] hover:bg-blue-50 transition-colors cursor-pointer bg-white relative"
+                className="group relative bg-white rounded-xl shadow-sm hover:shadow-xl border border-gray-200 overflow-hidden transition-all duration-300 cursor-pointer transform hover:-translate-y-2 hover:scale-105"
                 onClick={() => {
                   handleStartGeneralAssessment("50", languageFilter);
                 }}
               >
-                                  <div className="text-center">
-                    <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-1">50</div>
-                    <h3 className="font-semibold mb-1 text-gray-800 text-xs lg:text-sm">Comprehensive Assessment</h3>
-                    <p className="text-xs lg:text-sm text-gray-600 mb-2">In-depth assessment for thorough evaluation</p>
-                    
-                    <div className="text-[#1045A1] font-semibold text-xs lg:text-sm">
-                      {isStartingCustom && questionCount === "50" ? "Loading..." : "Click to Start"}
-                    </div>
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative p-6 text-center">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                    <span className="text-white font-bold text-xl">50</span>
                   </div>
+                  <h3 className="font-bold text-lg text-gray-900 mb-2 group-hover:text-[#1045A1] transition-colors duration-300">Comprehensive Assessment</h3>
+                  <p className="text-sm text-gray-600 mb-4 leading-relaxed">In-depth assessment for thorough evaluation</p>
+                  
+                  <div className="flex items-center justify-center gap-2 text-[#1045A1] font-semibold text-sm group-hover:gap-3 transition-all duration-300">
+                    <span>{isStartingCustom && questionCount === "50" ? "Loading..." : "Start Now"}</span>
+                    <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

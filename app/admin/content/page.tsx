@@ -12,8 +12,10 @@ import { useCategories } from "@/hooks/use-categories";
 import { useUsers } from "@/hooks/use-users";
 import { EditCourseDialog } from "@/components/edit-course-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useRouter } from "next/navigation";
 
 export default function ContentManagementPage() {
+  const router = useRouter();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const { data: courses, isLoading } = useCourses();
   const { data: categories } = useCategories();
@@ -39,8 +41,7 @@ export default function ContentManagementPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading
-          ? // Loading skeleton
-            Array.from({ length: 6 }).map((_, index) => (
+          ? Array.from({ length: 6 }).map((_, index) => (
               <Card key={index}>
                 <CardContent className="p-6">
                   <div className="space-y-4 animate-pulse">
@@ -56,7 +57,11 @@ export default function ContentManagementPage() {
               </Card>
             ))
           : courses?.map((course) => (
-              <Card key={course._id}>
+              <Card 
+                key={course._id} 
+                className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-[1.02]"
+                onClick={() => router.push(`/admin/content/${course._id}`)}
+              >
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
@@ -69,7 +74,7 @@ export default function ContentManagementPage() {
                     </div>
                     <div className="flex justify-between items-start">
                       <h3 className="font-semibold">{course.title}</h3>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                         <Link href={`/admin/content/${course._id}`}>
                           <Button variant="ghost" size="icon">
                             <Eye className="h-4 w-4" />
