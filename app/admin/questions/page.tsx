@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Eye, Pencil, Trash2, HelpCircle, Plus, Brain, Target, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { AddQuestionDialog } from "@/components/add-question-dialog";
 import { QuestionActionsDialog } from "@/components/question-actions-dialog";
 import { useQuestions, useDeleteQuestion } from "@/hooks/use-questions";
@@ -21,6 +21,13 @@ export default function QuestionsPage() {
   const { data: questions, isLoading } = useQuestions();
   const { mutate: deleteQuestion, isPending: isDeleting } = useDeleteQuestion();
 
+  // Calculate statistics
+  const totalQuestions = questions?.length || 0;
+  const activeQuestions = questions?.filter(q => q.status === "Active").length || 0;
+  const easyQuestions = questions?.filter(q => q.difficulty === "Easy").length || 0;
+  const mediumQuestions = questions?.filter(q => q.difficulty === "Medium").length || 0;
+  const hardQuestions = questions?.filter(q => q.difficulty === "Hard").length || 0;
+
   const handleDelete = () => {
     if (selectedQuestion?._id) {
       deleteQuestion(selectedQuestion._id);
@@ -31,97 +38,128 @@ export default function QuestionsPage() {
     {
       accessorKey: "text",
       header: "Question Text",
+      cell: ({ row }) => (
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 bg-gradient-to-br from-[#1045A1] to-[#0D3A8B] rounded-lg flex items-center justify-center text-white shadow-sm flex-shrink-0">
+            <HelpCircle className="w-4 h-4" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900 line-clamp-2">{row.original.text}</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {row.original.options?.length || 0} options
+            </p>
+          </div>
+        </div>
+      ),
     },
     {
       accessorKey: "category",
       header: "Category",
-      cell: ({ row }) => row.original.category?.categoryName,
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <Target className="w-4 h-4 text-blue-500" />
+          <span className="text-sm font-medium text-gray-700">
+            {row.original.category?.categoryName || "Uncategorized"}
+          </span>
+        </div>
+      ),
     },
     {
       accessorKey: "difficulty",
       header: "Difficulty",
       cell: ({ row }) => (
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-semibold shadow-sm ${
-            row.original.difficulty === "Easy"
-              ? "bg-green-100 text-green-700"
-              : row.original.difficulty === "Medium"
-              ? "bg-yellow-100 text-yellow-700"
-              : "bg-red-100 text-red-700"
-          }`}
-        >
-          {row.original.difficulty}
-        </span>
+        <div className="flex items-center gap-2">
+          <Brain className="w-4 h-4 text-gray-500" />
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-semibold ${
+              row.original.difficulty === "Easy"
+                ? "bg-green-100 text-green-700"
+                : row.original.difficulty === "Medium"
+                ? "bg-yellow-100 text-yellow-700"
+                : "bg-red-100 text-red-700"
+            }`}
+          >
+            {row.original.difficulty}
+          </span>
+        </div>
       ),
     },
     {
       accessorKey: "status",
       header: "Status",
       cell: ({ row }) => (
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-semibold shadow-sm ${
-            row.original.status === "Active"
-              ? "bg-green-100 text-green-700"
-              : "bg-gray-100 text-gray-700"
-          }`}
-        >
-          {row.original.status}
-        </span>
+        <div className="flex items-center gap-2">
+          {row.original.status === "Active" ? (
+            <CheckCircle className="w-4 h-4 text-green-500" />
+          ) : (
+            <Clock className="w-4 h-4 text-gray-500" />
+          )}
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-semibold ${
+              row.original.status === "Active"
+                ? "bg-green-100 text-green-700"
+                : "bg-gray-100 text-gray-700"
+            }`}
+          >
+            {row.original.status}
+          </span>
+        </div>
       ),
     },
     {
       id: "actions",
+      header: "Actions",
       cell: ({ row }) => (
         <TooltipProvider>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="hover:bg-blue-100"
+                  className="h-8 w-8 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200"
                   onClick={() => {
                     setSelectedQuestion(row.original);
                     setShowViewDialog(true);
                   }}
                 >
-                  <Eye className="h-4 w-4 text-blue-600" />
+                  <Eye className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>View</TooltipContent>
+              <TooltipContent>View Question</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="hover:bg-green-100"
+                  className="h-8 w-8 hover:bg-green-50 hover:text-green-600 transition-all duration-200"
                   onClick={() => {
                     setSelectedQuestion(row.original);
                     setShowEditDialog(true);
                   }}
                 >
-                  <Pencil className="h-4 w-4 text-green-600" />
+                  <Pencil className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Edit</TooltipContent>
+              <TooltipContent>Edit Question</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="hover:bg-red-100"
+                  className="h-8 w-8 hover:bg-red-50 hover:text-red-600 transition-all duration-200"
                   onClick={() => {
                     setSelectedQuestion(row.original);
                     setShowDeleteDialog(true);
                   }}
                   disabled={isDeleting}
                 >
-                  <Trash2 className="h-4 w-4 text-red-600" />
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Delete</TooltipContent>
+              <TooltipContent>Delete Question</TooltipContent>
             </Tooltip>
           </div>
         </TooltipProvider>
@@ -130,28 +168,108 @@ export default function QuestionsPage() {
   ];
 
   return (
-    <div className="space-y-6 bg-gray-50 min-h-screen pb-10">
-      <div className="flex justify-between items-center sticky top-0 z-10 bg-gray-50/80 py-4 px-2 md:px-0">
-        <h1 className="text-2xl font-bold">Question Management</h1>
-        <Button
-          className="bg-[#1045A1] hover:bg-[#0D3A8B] shadow-lg px-6 py-2 text-base font-semibold"
-          onClick={() => setShowAddDialog(true)}
-        >
-          ADD QUESTION
-        </Button>
+    <div className="space-y-6 overflow-x-hidden">
+      {/* Enhanced Header */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-[#1045A1] to-[#0D3A8B] rounded-xl flex items-center justify-center shadow-lg">
+                <HelpCircle className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Question Management</h1>
+                <p className="text-gray-600">Create and manage assessment questions</p>
+              </div>
+            </div>
+          </div>
+          <Button
+            className="bg-[#1045A1] hover:bg-[#0D3A8B] text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-semibold"
+            onClick={() => setShowAddDialog(true)}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Question
+          </Button>
+        </div>
       </div>
 
-      <div className="max-w-5xl mx-auto">
-        <div className="rounded-2xl shadow-lg border bg-white overflow-x-auto">
-          <div className="p-4 flex items-center justify-between border-b bg-gray-50 rounded-t-2xl sticky top-0 z-10">
-            <div className="flex items-center gap-2">
-              <h2 className="font-semibold text-lg">Current Questions</h2>
-              <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                {questions?.length || 0} questions
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Questions</p>
+              <p className="text-2xl font-bold text-gray-900">{totalQuestions}</p>
+            </div>
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+              <HelpCircle className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Active</p>
+              <p className="text-2xl font-bold text-green-600">{activeQuestions}</p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Easy</p>
+              <p className="text-2xl font-bold text-green-600">{easyQuestions}</p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+              <Brain className="w-6 h-6 text-green-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Medium</p>
+              <p className="text-2xl font-bold text-yellow-600">{mediumQuestions}</p>
+            </div>
+            <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+              <Brain className="w-6 h-6 text-yellow-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Hard</p>
+              <p className="text-2xl font-bold text-red-600">{hardQuestions}</p>
+            </div>
+            <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+              <Brain className="w-6 h-6 text-red-600" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Enhanced Data Table */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+        <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-bold text-gray-900">All Questions</h2>
+              <span className="bg-[#1045A1] text-white px-3 py-1 rounded-full text-sm font-medium">
+                {totalQuestions} questions
               </span>
             </div>
           </div>
+        </div>
 
+        <div className="p-6">
           <DataTable
             columns={columns}
             data={questions || []}
@@ -164,6 +282,7 @@ export default function QuestionsPage() {
         </div>
       </div>
 
+      {/* Enhanced Dialogs */}
       <AddQuestionDialog open={showAddDialog} onOpenChange={setShowAddDialog} />
 
       <QuestionActionsDialog

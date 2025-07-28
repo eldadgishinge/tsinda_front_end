@@ -9,23 +9,40 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { User, Settings, LogOut } from 'lucide-react'
 import Link from "next/link"
-import { useLogout } from "@/hooks/use-auth"
+import { useLogout, useUser } from "@/hooks/use-auth"
 
 export function UserNav() {
   const logout = useLogout();
+  const { data: user } = useUser();
 
   const handleLogout = () => {
     logout.mutate();
   };
+
+  // Generate initials from user's name
+  const getInitials = () => {
+    if (!user?.name) {
+      return user?.email?.slice(0, 2).toUpperCase() || "U";
+    }
+    const nameParts = user.name.split(' ');
+    if (nameParts.length >= 2) {
+      return `${nameParts[0].charAt(0)}${nameParts[nameParts.length - 1].charAt(0)}`.toUpperCase();
+    }
+    return user.name.slice(0, 2).toUpperCase();
+  };
+
+  // Use primary color for avatar background
+  const getAvatarColor = () => {
+    return "bg-[#1045A1]";
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="w-7 h-7 lg:w-8 lg:h-8 rounded-full bg-gray-200 overflow-hidden hover:bg-gray-300 transition-colors">
-          <img
-            src="/placeholder.svg"
-            alt="Profile"
-            className="w-full h-full object-cover"
-          />
+        <button className="w-8 h-8 lg:w-10 lg:h-10 rounded-full overflow-hidden hover:opacity-80 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#1045A1] focus:ring-offset-2">
+          <div className={`w-full h-full ${getAvatarColor()} flex items-center justify-center text-white font-semibold text-sm lg:text-base`}>
+            {getInitials()}
+          </div>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[180px] lg:w-[200px]">

@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Menu, X } from "lucide-react";
+import { Bell, Menu, X, Home, BookOpen, Target, Settings, User, Crown, HelpCircle, Search } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,178 +34,179 @@ export default function DashboardLayout({
 
   if (isLoading || !user || user.role !== "user") {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <span className="text-lg text-gray-500">Checking permissions...</span>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto animate-pulse">
+            <User className="w-8 h-8 text-gray-400" />
+          </div>
+          <span className="text-lg text-gray-500">Checking permissions...</span>
+        </div>
       </div>
     );
   }
 
   return (
     <LanguageProvider>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         {/* Mobile Sidebar Overlay */}
         {sidebarOpen && (
           <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
 
         <div className="flex h-screen">
-          {/* Sidebar */}
-          <aside className={`fixed left-0 top-0 h-full bg-white border-r z-50 transition-transform duration-300 ease-in-out ${
+          {/* Enhanced Sidebar */}
+          <aside className={`fixed left-0 top-0 h-full bg-white/95 backdrop-blur-sm border-r border-gray-200 shadow-xl z-50 transition-all duration-300 ease-in-out ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          } lg:translate-x-0 lg:relative lg:z-auto w-60 flex-shrink-0 flex flex-col`}>
-            {/* Logo Section */}
-            <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
-              <Image
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-hxaByNvU8TKzz1s5pL1JrvMKDa9Bvn.png"
-                alt="Tsindacyane Logo"
-                width={150}
-                height={30}
-                className="w-[120px] lg:w-[150px] h-auto"
-              />
+          } lg:translate-x-0 lg:relative lg:z-auto w-64 flex-shrink-0 flex flex-col`}>
+            
+            {/* Enhanced Logo Section */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0 bg-gradient-to-r from-white to-gray-50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-[#1045A1] to-[#0D3A8B] rounded-xl flex items-center justify-center shadow-lg">
+                  <BookOpen className="w-5 h-5 text-white" />
+                </div>
+                <Image
+                  src="/logo.svg"
+                  alt="Tsindacyane Logo"
+                  width={120}
+                  height={35}
+                  className="h-8 w-auto"
+                />
+              </div>
               <button
                 onClick={() => setSidebarOpen(false)}
-                className="lg:hidden p-1 rounded-md hover:bg-gray-100"
+                className="lg:hidden p-2 rounded-xl hover:bg-gray-100 transition-colors duration-200"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5 text-gray-600" />
               </button>
             </div>
 
-            {/* Navigation Section */}
+            {/* Enhanced Navigation Section */}
             <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-              <SidebarNavItem
-                href="/dashboard"
-                icon={
-                  <svg
-                    className="w-5 h-5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M9 22V12H15V22M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                }
-              >
-                Home
-              </SidebarNavItem>
+              <div className="space-y-1">
+                <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Main Navigation
+                </div>
+                
+                <SidebarNavItem
+                  href="/dashboard"
+                  icon={<Home className="w-5 h-5" />}
+                >
+                  Dashboard
+                </SidebarNavItem>
 
-              <SidebarNavItem
-                href="/dashboard/lessons"
-                icon={
-                  <svg
-                    className="w-5 h-5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M12 6.25278V19.2528M12 6.25278C10.8321 5.47686 9.24649 5 7.5 5C5.75351 5 4.16789 5.47686 3 6.25278V19.2528C4.16789 18.4769 5.75351 18 7.5 18C9.24649 18 10.8321 18.4769 12 19.2528M12 6.25278C13.1679 5.47686 14.7535 5 16.5 5C18.2465 5 19.8321 5.47686 21 6.25278V19.2528C19.8321 18.4769 18.2465 18 16.5 18C14.7535 18 13.1679 18.4769 12 19.2528"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                }
-              >
-                Lessons
-              </SidebarNavItem>
+                <SidebarNavItem
+                  href="/dashboard/lessons"
+                  icon={<BookOpen className="w-5 h-5" />}
+                >
+                  Lessons
+                </SidebarNavItem>
 
-              <SidebarNavItem
-                href="/dashboard/assessments"
-                icon={
-                  <svg
-                    className="w-5 h-5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M9 5H7C6.46957 5 5.96086 5.21071 5.58579 5.58579C5.21071 5.96086 5 6.46957 5 7V19C5 19.5304 5.21071 20.0391 5.58579 20.4142C5.96086 20.7893 6.46957 21 7 21H17C17.5304 21 18.0391 20.7893 18.4142 20.4142C18.7893 20.0391 19 19.5304 19 19V7C19 6.46957 18.7893 5.96086 18.4142 5.58579C18.0391 5.21071 17.5304 5 17 5H15M9 5C9 5.53043 9.21071 6.03914 9.58579 6.41421C9.96086 6.78929 10.4696 7 11 7H13C13.5304 7 14.0391 6.78929 14.4142 6.41421C14.7893 6.03914 15 5.53043 15 5M9 5C9 4.46957 9.21071 3.96086 9.58579 3.58579C9.96086 3.21071 10.4696 3 11 3H13C13.5304 3 14.0391 3.21071 14.4142 3.58579C14.7893 3.96086 15 4.46957 15 5"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                }
-              >
-                Assessments
-              </SidebarNavItem>
+                <SidebarNavItem
+                  href="/dashboard/assessments"
+                  icon={<Target className="w-5 h-5" />}
+                >
+                  Assessments
+                </SidebarNavItem>
+              </div>
+
+              <div className="space-y-1 pt-4">
+                <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Account
+                </div>
+                
+                <SidebarNavItem
+                  href="/dashboard/profile"
+                  icon={<User className="w-5 h-5" />}
+                >
+                  Profile
+                </SidebarNavItem>
+
+                <SidebarNavItem
+                  href="/dashboard/settings"
+                  icon={<Settings className="w-5 h-5" />}
+                >
+                  Settings
+                </SidebarNavItem>
+              </div>
             </nav>
 
-            {/* Bottom Section */}
-            <div className="p-4 border-t flex-shrink-0">
+            {/* Enhanced Bottom Section */}
+            <div className="p-4 border-t border-gray-200 flex-shrink-0 bg-gradient-to-r from-gray-50 to-white">
               <div className="space-y-4">
-                <div className="text-sm">
-                  <div className="text-gray-500">Current plan:</div>
-                  <div className="font-medium">Basic</div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button className="flex-1 bg-[#1045A1] hover:bg-[#0D3A8B] text-xs lg:text-sm">
-                    Upgrade
+                {/* Plan Status */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <Crown className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-blue-600 font-semibold">Current Plan</div>
+                      <div className="text-sm font-bold text-gray-900">Basic</div>
+                    </div>
+                  </div>
+                  <Button className="w-full bg-[#1045A1] hover:bg-[#0D3A8B] text-xs font-semibold py-2">
+                    Upgrade Plan
                   </Button>
+                </div>
+
+                {/* Help Section */}
+                <div className="flex items-center gap-2">
                   <HelpMenu />
+                  <div className="flex-1 text-xs text-gray-500">
+                    Need help? We're here for you
+                  </div>
                 </div>
               </div>
             </div>
           </aside>
 
-          {/* Main Content */}
+          {/* Enhanced Main Content */}
           <div className="flex-1 flex flex-col min-w-0">
-            {/* Header */}
-            <header className="bg-white border-b px-4 lg:px-8 py-4 sticky top-0 z-30">
-              <div className="flex items-center justify-between">
+            {/* Enhanced Header */}
+            <header className="bg-white/90 backdrop-blur-md border-b border-gray-200 px-6 py-4 sticky top-0 z-30 shadow-lg">
+              <div className="flex items-center justify-end">
                 {/* Mobile Menu Button */}
                 <button
                   onClick={() => setSidebarOpen(true)}
-                  className="lg:hidden p-2 rounded-md hover:bg-gray-100"
+                  className="lg:hidden p-3 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:shadow-md mr-auto"
                 >
-                  <Menu className="w-5 h-5" />
+                  <Menu className="w-5 h-5 text-gray-600" />
                 </button>
 
-                {/* Search Bar */}
-                <div className="flex-1 max-w-sm lg:max-w-xs mx-4 lg:mx-0">
-                  <div className="relative">
-                    <Input type="search" placeholder="Search" className="pl-10 text-sm" />
-                    <svg
-                      className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
+                <div className="flex items-center space-x-4 lg:space-x-6">
+                  {/* Enhanced Language Switcher */}
+                  <div className="hidden sm:block">
+                    <LanguageSwitcher />
                   </div>
-                </div>
 
-                <div className="flex items-center space-x-2 lg:space-x-4">
-                  <LanguageSwitcher />
-
-                  <button className="relative">
-                    <Bell className="w-5 h-5 text-gray-600" />
-                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full" />
+                  {/* Enhanced Notification Button */}
+                  <button className="relative p-3 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:shadow-md group">
+                    <Bell className="w-5 h-5 text-gray-600 group-hover:text-[#1045A1] transition-colors duration-200" />
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse shadow-sm" />
                   </button>
 
-                  <UserNav />
+                  {/* User Profile Section */}
+                  <div className="flex items-center gap-3">
+                    <div className="hidden lg:block text-right">
+                      <div className="text-sm font-semibold text-gray-900">
+                        {user?.name}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {user?.email}
+                      </div>
+                    </div>
+                    <UserNav />
+                  </div>
                 </div>
               </div>
             </header>
 
-            {/* Page Content */}
-            <main className="flex-1 overflow-y-auto bg-white px-4 lg:px-8 py-4 w-full max-w-full">
+            {/* Enhanced Page Content */}
+            <main className="flex-1 overflow-y-auto bg-transparent px-6 py-6 w-full max-w-full">
               <div className="w-full max-w-full overflow-x-hidden">
                 {children}
               </div>
